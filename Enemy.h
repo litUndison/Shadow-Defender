@@ -1,0 +1,319 @@
+#ifndef ENEMY_H
+#define ENEMY_H
+
+#include "Header.h"
+
+
+
+
+class Enemy {
+
+private:
+	int health = 100;
+	int enemy_speed = 2;
+	float CurrentFrame = 0;
+	int HeroDirection = 3;
+	int damage = 15;
+	//интервал 0.5 секунды
+	Texture enemy_texture;
+	Texture damage_texture;
+	Sprite damage_sprite;
+	/*Clock damageClock;*/
+	FloatRect enemyBounds;
+	Image enemy_image;
+	Clock DamageTakenAnimation;
+	bool isTakingDamage = false;
+	bool isDeath = false;
+	int transparent = 255;
+	float DeathScale = 1;
+	Color baseColor = Color::White;
+	int rotate = 1; // 1 - налево, 2 - направо
+
+	int CountOfEXP = 10;
+
+public:
+	Clock Damage3Cooldown;
+
+	bool canPush = true;
+	Sprite enemy_sprite;
+	bool CanTakeDamage[6] = { true, true, true, true, true, true };
+	Clock damageCooldown;
+	float cooldownTime = 0.55f;
+	int lastHitByProjectile = -1;
+	//bool canTakeDamage = true;
+
+	Enemy(Image& Image, string way_path, int x, int y)
+	{
+		damage_texture.loadFromFile(way_path);
+		damage_sprite.setTexture(damage_texture);
+		damage_sprite.setScale(Vector2f(0.2f, 0.2f));
+		damage_sprite.setColor(Color(255, 255, 255, 0));
+
+		/*enemy_image.loadFromFile("data/images/car.png");*/
+		enemy_image = Image;
+		enemy_texture.loadFromImage(enemy_image);
+		enemy_sprite.setTexture(enemy_texture);
+		enemy_sprite.setPosition(x, y);
+		enemyBounds = enemy_sprite.getGlobalBounds();
+		enemy_sprite.setScale(sf::Vector2f(0.2f, 0.2f));
+		//enemy.setTextureRect(IntRect(45, 0, 48, 58));//выделяем из картинки отрезок. от координат (0,0) до (48,58)
+	}
+
+	/*FloatRect enemyBounds = enemy_sprite.getGlobalBounds();*/
+
+	void Collision(vector<Enemy>& enemies, int moveDirectionX, int moveDirectionY)
+	{
+		FloatRect enemyBounds = enemy_sprite.getGlobalBounds();
+		Vector2f centerThis(enemy_sprite.getPosition().x + enemyBounds.width / 2.f,
+			enemy_sprite.getPosition().y + enemyBounds.height / 2.f);
+
+		for (Enemy& other : enemies) {
+			if (&other != this) { // Проверяем только других врагов
+				FloatRect otherBounds = other.enemy_sprite.getGlobalBounds();
+				Vector2f centerOther(other.enemy_sprite.getPosition().x + otherBounds.width / 2.f,
+					other.enemy_sprite.getPosition().y + otherBounds.height / 2.f);
+
+				if (enemyBounds.intersects(otherBounds)) {
+					// Вектор между центрами
+					Vector2f direction = centerThis - centerOther;
+					float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+					// Защита от деления на 0
+					if (distance == 0.f)
+						direction = Vector2f(1.f, 0.f); // просто вправо
+					else
+						direction /= distance; // нормализация
+
+					float overlap = 0.5f * (std::min(enemyBounds.width, otherBounds.width) - distance);
+					if (overlap < 1.f) overlap = 1.f; // чтобы не "слипались"
+
+					// Раздвигаем врагов в разные стороны
+					enemy_sprite.move(direction * overlap);
+					other.enemy_sprite.move(-direction * overlap);
+				}
+			}
+		}
+	}
+
+
+	void HeroFollow(int gamePause, FloatRect& inheroBounds, Sprite& hero, float deltatime, vector<Enemy>& enemies)
+	{
+		if (gamePause != true)
+		{
+			int enemydif_x = (hero.getPosition().x) - (enemy_sprite.getPosition().x);
+			int enemydif_y = (hero.getPosition().y) - (enemy_sprite.getPosition().y);
+			float supX = abs(enemydif_x);
+			float supY = abs(enemydif_y);
+			int Xmove = 15;
+			if (hero.getPosition().x < enemy_sprite.getPosition().x)
+			{
+				CurrentFrame += 0.005 * deltatime;
+				if (CurrentFrame > 4) CurrentFrame -= 4;
+				if (CurrentFrame != 0) Xmove = 15 * int(CurrentFrame);
+				else Xmove = 0;
+				enemy_sprite.setTextureRect(IntRect((int(CurrentFrame) * 195) + Xmove, 0, 205, 360));
+				rotate = 1;
+			}
+			else
+			{
+				CurrentFrame += 0.005 * deltatime;
+				if (CurrentFrame > 4) CurrentFrame -= 4;
+				if (CurrentFrame != 0) Xmove = 15 * int(CurrentFrame);
+				else Xmove = 0;
+				enemy_sprite.setTextureRect(IntRect((int(CurrentFrame) * 195) + Xmove, 375, 205, 360));
+				rotate = 2;
+			}
+
+			if (hero.getPosition().x != enemy_sprite.getPosition().x)
+			{
+				if (enemydif_x < 0)
+				{
+					enemy_sprite.move(-(enemy_speed * (supX / sqrt(supX * supX + supY * supY))), 0);
+					Collision(enemies, enemy_speed * (supX / sqrt(supX * supX + supY * supY)), 0);
+				}
+				else
+				{
+					enemy_sprite.move(enemy_speed * (supX / sqrt(supX * supX + supY * supY)), 0);
+					Collision(enemies, -(enemy_speed * (supX / sqrt(supX * supX + supY * supY))), 0);
+				}
+
+			}
+			if (hero.getPosition().y != enemy_sprite.getPosition().y)
+			{
+				if (enemydif_y < 0)
+				{
+					enemy_sprite.move(0, -(enemy_speed * (supY / sqrt(supX * supX + supY * supY))));
+					Collision(enemies, 0, enemy_speed * (supY / sqrt(supX * supX + supY * supY)));
+				}
+				else
+					enemy_sprite.move(0, enemy_speed * (supY / sqrt(supX * supX + supY * supY)));
+				Collision(enemies, 0, -(enemy_speed * (supY / sqrt(supX * supX + supY * supY))));
+
+			}
+
+			if (inheroBounds.intersects(enemyBounds))
+			{
+				if (enemydif_x < 0)
+				{
+					if (abs(enemydif_x) < abs(enemydif_y))
+						enemy_sprite.move((enemy_speed * (supX / sqrt(supX * supX + supY * supY))), 0);
+					else
+						enemy_sprite.move(enemy_speed, 0);
+				}
+				else
+					if (abs(enemydif_x) < abs(enemydif_y))
+						enemy_sprite.move(-enemy_speed * (supX / sqrt(supX * supX + supY * supY)), 0);
+					else
+						enemy_sprite.move(-enemy_speed, 0);
+
+				if (enemydif_y < 0)
+				{
+					if (abs(enemydif_x) > abs(enemydif_y))
+						enemy_sprite.move(0, (enemy_speed * (supX / sqrt(supX * supX + supY * supY))));
+					else
+						enemy_sprite.move(0, enemy_speed);
+				}
+				else
+					if (abs(enemydif_x) > abs(enemydif_y))
+						enemy_sprite.move(0, -enemy_speed * (supX / sqrt(supX * supX + supY * supY)));
+					else
+						enemy_sprite.move(0, -enemy_speed);
+			}
+			enemyBounds = enemy_sprite.getGlobalBounds();
+		}
+		damage_sprite.setPosition(enemy_sprite.getPosition());
+	}
+	void DamageDeal(int gamePause, Hero& Hero, const float damageInterval, Clock& damageClock)
+	{
+		if (gamePause != true)
+		{
+			FloatRect heroBounds1 = Hero.heroBounds;
+			if (heroBounds1.intersects(enemyBounds) && damageClock.getElapsedTime().asSeconds() >= damageInterval)
+			{
+				Hero.health -= damage; // Уменьшаем здоровье
+				damageClock.restart(); // Сбрасываем таймер
+				/*damagetaken.play();*/
+			}
+		}
+	}
+
+	bool canTakeDamage()
+	{
+		return damageCooldown.getElapsedTime().asSeconds() >= cooldownTime;
+	}
+
+	void takeDamage(int damage, int WeaponIndex)
+	{
+		if (CanTakeDamage[WeaponIndex])
+		{
+			health -= damage;
+
+			// Запускаем анимацию
+			DamageTakenAnimation.restart();
+			isTakingDamage = true;
+
+			// исходный цвет
+			baseColor = enemy_sprite.getColor();
+
+			CanTakeDamage[WeaponIndex] = false;
+		}
+	}
+	void updateDamageAnimation()
+	{
+		if (!isTakingDamage) return;
+
+		if (rotate == 1)
+		{
+			damage_sprite.setTextureRect(IntRect(0, 0, 195, 360));
+		}
+		else
+		{
+			damage_sprite.setTextureRect(IntRect(195, 0, 195, 360));
+		}
+
+		sf::Time elapsed = DamageTakenAnimation.getElapsedTime();
+		const sf::Time duration = sf::milliseconds(100);
+
+		float progress = elapsed.asSeconds() / duration.asSeconds();
+
+		if (progress >= 1.f)
+		{
+			// Анимация завершена — делаем белый спрайт полностью прозрачным
+			damage_sprite.setColor(sf::Color(255, 255, 255, 0));
+			isTakingDamage = false;
+		}
+		else
+		{
+			// Плавная альфа: сначала возрастает до 255, потом убывает до 0
+			float factor;
+
+			if (progress <= 0.5f)
+			{
+				factor = progress * 2.f;  // от 0 до 1, когда progress идёт от 0 до 0.5
+			}
+			else
+			{
+				factor = (1.f - progress) * 2.f;  // от 1 до 0, когда progress идёт от 0.5 до 1
+			}
+
+			int alpha = int(factor * 255);
+
+			// Устанавливаем цвет: белый с изменяемой прозрачностью
+			damage_sprite.setColor(sf::Color(255, 255, 255, alpha));
+
+		}
+	}
+	bool DeathAnimation()
+	{
+		if (!isDeath) return false;
+
+		enemy_speed = 0;
+		enemy_sprite.setOrigin(enemy_sprite.getGlobalBounds().width / 2.f, enemy_sprite.getGlobalBounds().height / 2.f);
+		damage_sprite.setOrigin(enemy_sprite.getGlobalBounds().width / 2.f, enemy_sprite.getGlobalBounds().height / 2.f);
+		enemy_sprite.setScale(0.2f * DeathScale, 0.2f * DeathScale);
+		damage_sprite.setScale(0.2f * DeathScale, 0.2f * DeathScale);
+		DeathScale += 0.01;
+		enemy_sprite.setColor(Color(255, 255, 255, transparent));
+		transparent -= 25;
+		if (transparent <= 0)
+			return true;
+		else
+			return false;
+
+	}
+	FloatRect getGlobalBounds()
+	{
+		return enemy_sprite.getGlobalBounds();
+	}
+	Vector2f getPosition()
+	{
+		return enemy_sprite.getPosition();
+	}
+	bool EnemyUpdate(RenderWindow& window)
+	{
+		enemy_sprite.setTexture(enemy_texture);
+		damage_sprite.setTexture(damage_texture);
+		window.draw(enemy_sprite);
+		window.draw(damage_sprite);
+		if (health <= 0)
+		{
+			isDeath = true;
+			return false;
+		}
+		else
+			return true;
+	}
+	Sprite getSprite()
+	{
+		return enemy_sprite;
+	}
+	int getEXP()
+	{
+		return CountOfEXP;
+	}
+	~Enemy()
+	{
+	}
+};
+
+#endif // ENEMY_H
