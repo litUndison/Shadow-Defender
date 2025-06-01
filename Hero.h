@@ -15,13 +15,13 @@ private:
 	float CurrentFrame = 0;
 	int CurrentEXP = 0; // текущее кол-во опыта
 	int RequireEXP = 100; // необходимое кол-во
-	int Level = 0;
+	
 
 
 public:
-
+	int Level = 0;
 	int UpgradePoint = 0; // если true - вызвать триггер прокачки навыка
-	bool HaveAbilities[6] = { false, true, false, true, false, false };
+	bool HaveAbilities[6] = { false, false, false, false, false, false };
 	int health;
 	int damageBoost;
 	int armor;

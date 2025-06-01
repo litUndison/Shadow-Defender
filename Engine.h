@@ -770,7 +770,7 @@ int GameStart()
 
 		//--------------------------------ГЛАВНОЕ МЕНЮ (КОНЕЦ)----------------------------
 
-		Hero Hero(200, 200, 150, 0, 0, 3);
+		Hero Hero(200, 200, 150, 0, 0, 0);
 
 		Music GameMusic1;
 		GameMusic1.openFromFile("data/music/Game1.mp3");
@@ -858,7 +858,7 @@ int GameStart()
 		//
 		//МЕНЮ ПРОКАЧКИ НАВЫКОВ
 		//
-		UpgradeAbility Ability1Update(400, 450, 400, 400, Color(80, 80, 80), font, L"Способ 1", 85, Color(200, 0, 0), "data/images/Weapon4Icon.psd", "data/images/WeaponIcon.png", true, 6);
+		//UpgradeAbility Ability1Update(400, 450, 400, 400, Color(80, 80, 80), font, L"Способ 1", 85, Color(200, 0, 0), "data/images/Weapon4Icon.psd", "data/images/WeaponIcon.png", true, 6);
 		//
 		/*enemy_image.loadFromFile("data/images/car.png");
 		enemy_image1.loadFromFile("data/images/car.png");
@@ -1037,6 +1037,7 @@ int GameStart()
 								EXPBar.Update(window, enemies[i].getEXP());
 								enemies.erase(enemies.begin() + i);
 								cout << "EXP: " << Hero.getEXP() << endl;
+								cout << "Level: " << Hero.Level << " Points: " << Hero.UpgradePoint << endl;
 							}
 							continue;
 						}
@@ -1200,7 +1201,7 @@ int GameStart()
 			window.draw(timerText);
 			//HealthBar.setPosition(50, 50); // позиция фиксированная на экране
 			HealthBar.Update(window, Hero.health);
-			Abilities.Update(window/*, Hero.HaveAbilities*/);
+			Abilities.Update(window/*, Hero.HaveAbilities*/, Hero);
 			EXPBar.Update(window);
 			//HealthBar.setPosition(50, 50);
 			if (LoadingRect.getFillColor().a > 0)

@@ -222,6 +222,7 @@ private:
     Vector2f startPosition;
 
 public:
+    int Level = 1;
     Ability1(int Damage, string Directory)
     {
 
@@ -353,6 +354,7 @@ private:
     bool targetAcquired = false;
 
 public:
+    int Level = 1;
     Ability2(int Damage, const string& Directory)
     {
         AttackSound.openFromFile("data/music/Attack2.mp3");
@@ -486,6 +488,7 @@ private:
     float fadeSpeed = 300.f; // скорость появления/исчезновения в альфа-единицах в секунду
 
 public:
+    int Level = 1;
     Ability3(float cooldownSeconds, float durationSeconds, const string& texturePath, int NumProjectiles = 1)
     {
         cooldown = cooldownSeconds;
@@ -638,6 +641,7 @@ private:
 
 
 public:
+    int Level = 1;
     Ability4(const string& texturePath, int Damage)
     {
         damage = Damage;
@@ -691,6 +695,103 @@ public:
     bool isActive() const { return active; }
     ~Ability4() {}
 };
+class UpgradeAbility // будет как в доте, то есть плюсики над навыками
+{
+private:
+    Sprite UpgradeSprite;
+    Color currentColor; // начальный серый
+    Color targetColor;
+    float AnimSpeed = 20.0f;
+    Clock deltaClock;
+    bool isPressed = false;
+    float ScaleX;
+    float ScaleY;
+    float X;
+    float Y;
+    float width;
+    float height;
+
+    RectangleShape ColorAnim;
+
+public:
+    UpgradeAbility(int RectSize, int PosX, int PosY, const Texture& Texture)
+    {
+        UpgradeSprite.setTexture(Texture);
+        ScaleX = float(RectSize) / Texture.getSize().x;
+        ScaleY = float(RectSize) / Texture.getSize().y / 2;
+        UpgradeSprite.setScale(ScaleX, ScaleY);
+        UpgradeSprite.setPosition(PosX, PosY - Texture.getSize().y * float(RectSize) / Texture.getSize().y / 2 /*- (float(RectSize) / Texture.getSize().y/2)*/);
+        X = PosX;
+        Y = PosY - Texture.getSize().y * float(RectSize) / Texture.getSize().y / 2;
+        ColorAnim.setSize(Vector2f(Texture.getSize().x * float(RectSize) / Texture.getSize().x / 2, Texture.getSize().y * float(RectSize) / Texture.getSize().y / 2));
+        ColorAnim.setPosition(UpgradeSprite.getPosition().x + ColorAnim.getSize().x/2, UpgradeSprite.getPosition().y);
+        ColorAnim.setFillColor(Color(50, 50, 50));
+        width = UpgradeSprite.getGlobalBounds().width;
+        height = UpgradeSprite.getGlobalBounds().height;
+    }
+    void Update(RenderWindow& window, bool& CurrentAbility) //bool говно полное. Потом сделать массив int. Чтобы 0 - отсутствие навыка, а 6 - максимум
+    {
+        float deltaTime = deltaClock.restart().asSeconds();
+        Vector2i MousePos = Mouse::getPosition(window);
+        Vector2f worldPos = window.mapPixelToCoords(MousePos);
+
+        if (Mouse::isButtonPressed(sf::Mouse::Left) && UpgradeSprite.getGlobalBounds().contains(worldPos))
+            isPressed = true;
+        else
+            isPressed = false;
+        if (UpgradeSprite.getGlobalBounds().contains(worldPos)) {
+            targetColor = sf::Color(240, 186, 26); // оранжевый
+        }
+        else {
+            targetColor = sf::Color(70, 70, 70); // серый
+        }
+
+        if (isPressed) 
+        {
+            CurrentAbility = true;
+            UpgradeSprite.setOrigin(UpgradeSprite.getGlobalBounds().width / 2, UpgradeSprite.getGlobalBounds().height / 2);
+            UpgradeSprite.setScale(ScaleX-0.01f, ScaleY-0.01f);  // чуть уменьшаем
+            UpgradeSprite.setOrigin(0, 0);
+            UpgradeSprite.setPosition(X + (width - UpgradeSprite.getGlobalBounds().width)/2, Y + (height - UpgradeSprite.getGlobalBounds().height)/2);
+
+            ColorAnim.setOrigin(ColorAnim.getSize().x / 2, ColorAnim.getSize().y / 2);
+            ColorAnim.setScale(UpgradeSprite.getGlobalBounds().width/2/ ColorAnim.getSize().x, 0.8f);
+            ColorAnim.setOrigin(0, 0);
+            ColorAnim.setPosition(X + (width - UpgradeSprite.getGlobalBounds().width) / 2 + UpgradeSprite.getGlobalBounds().width / 2 - ColorAnim.getSize().x/2, Y + (height - UpgradeSprite.getGlobalBounds().height));
+            
+        }
+        else 
+        {
+            UpgradeSprite.setOrigin(0, 0);
+            UpgradeSprite.setScale(ScaleX, ScaleY);  // чуть уменьшаем
+            UpgradeSprite.setPosition(X, Y);
+
+            ColorAnim.setOrigin(0, 0);
+            ColorAnim.setScale(1, 1);
+            ColorAnim.setPosition(UpgradeSprite.getPosition().x + UpgradeSprite.getGlobalBounds().width / 2 - ColorAnim.getSize().x/2, UpgradeSprite.getPosition().y);
+        }
+
+        float t = deltaTime * AnimSpeed;
+
+        // Просто приближаем каждый канал по чуть-чуть
+
+        if (currentColor.r != targetColor.r)
+            currentColor.r += static_cast<int>((targetColor.r - currentColor.r) * t);
+
+        if (currentColor.g != targetColor.g)
+            currentColor.g += static_cast<int>((targetColor.g - currentColor.g) * t);
+
+        if (currentColor.b != targetColor.b)
+            currentColor.b += static_cast<int>((targetColor.b - currentColor.b) * t);
+
+        ColorAnim.setFillColor(currentColor);
+
+        window.draw(ColorAnim);
+        window.draw(UpgradeSprite);
+    }
+    ~UpgradeAbility() {}
+};
+
 class AbilitiesUI
 {
 private:
@@ -699,6 +800,9 @@ private:
     Texture AbilityTextures[6];
 
     Sprite AbilitySprites[6];
+    Texture UpgradeTexture;
+
+    vector <UpgradeAbility> Upgrades;
 
     Texture IconTexture;
     Sprite IconSprite;
@@ -706,6 +810,7 @@ private:
 public:
     AbilitiesUI(int PosX, int PosY, int RectSize, int SpaceBetween, string way_path1, string way_path2, string way_path3, string way_path4, string way_path5, string way_path6, string way_path_icon)
     {
+        UpgradeTexture.loadFromFile("data/images/UpgradeButton.png");
         AbilityTextures[0].loadFromFile(way_path1);
         AbilityTextures[1].loadFromFile(way_path2);
         AbilityTextures[2].loadFromFile(way_path3);
@@ -713,6 +818,7 @@ public:
         AbilityTextures[4].loadFromFile(way_path5);
         AbilityTextures[5].loadFromFile(way_path6);
         IconTexture.loadFromFile(way_path_icon);
+
 
         AbilitySprites[0].setTexture(AbilityTextures[0]);
         AbilitySprites[1].setTexture(AbilityTextures[1]);
@@ -766,6 +872,10 @@ public:
         AbilitySprites[5].setScale(float(RectSize - 10) / AbilityTextures[5].getSize().x, float(RectSize - 10) / AbilityTextures[5].getSize().y);
         AbilitySprites[5].setPosition(AbilityRects[5].getPosition().x + 5, AbilityRects[5].getPosition().y + 5);
 
+        for (int i = 0; i < 6; ++i) {
+            Upgrades.emplace_back(RectSize, AbilityRects[i].getPosition().x, PosY, UpgradeTexture); // вызывается конструктор с аргументами
+        }
+
     }
     void UpdateAbilities(bool HaveAbilities[6])
     {
@@ -778,8 +888,25 @@ public:
         }
     }
 
-    void Update(RenderWindow& window/*, bool HaveAbilities[6]*/)
+    void Update(RenderWindow& window/*, bool HaveAbilities[6]*/, Hero& hero) // спорная херня, надо переделать
     {
+        bool test;
+        if (hero.UpgradePoint > 0)
+        {
+            for (int i = 0; i < 6; ++i)
+            {
+                if (hero.HaveAbilities[i] != true)
+                    test = hero.HaveAbilities[i];
+                Upgrades[i].Update(window, test);
+                if (test == true)
+                {
+                    hero.HaveAbilities[i] = test;
+                    CanDrawed[i] == true;
+                    hero.UpgradePoint -= 1;
+                }
+            }
+        }
+
         for (int i = 0; i < 6; i++)
         {
             window.draw(AbilityRects[i]);
@@ -789,6 +916,12 @@ public:
         {
             if (CanDrawed[i] == true)
             {
+                AbilitySprites[i].setColor(Color(255, 255, 255));
+                window.draw(AbilitySprites[i]);
+            }
+            else 
+            {
+                AbilitySprites[i].setColor(Color(100, 100, 100));
                 window.draw(AbilitySprites[i]);
             }
         }
@@ -803,224 +936,5 @@ public:
     {
 
     }
-};
-class UpgradeAbility
-{
-private:
-    RectangleShape rect;
-    RectangleShape Iconrect;
-    RectangleShape Iconrect2;
-
-    RectangleShape levelBg;
-    RectangleShape level1;
-    RectangleShape level2;
-    RectangleShape level3;
-
-    Font font;
-    Text AbilityNameText;
-    Text text;
-
-    string legend;
-    FloatRect Textrect;
-    int textSize;
-    Color rectcolor;
-    Color textcolor;
-
-    Texture abilityTexture;
-    Sprite abilitySprite;
-
-    Image FrameImage;
-    Texture FrameTexture;
-    Sprite FrameSprite;
-
-    float delttime = 0;
-    int upgradeLevel = 0;
-
-    bool canclick = false;
-
-public:
-    UpgradeAbility(int Recwidth, int Recheight, int PosX, int PosY, const Color& colorshape,
-        const Font& Font, const String& Legend, int TextSize, const Color& colortext,
-        string AbilityImg, string Frame, bool CanClick = true, int Thickness = 0)
-    {
-        // Загрузка текстуры способности
-        abilityTexture.loadFromFile(AbilityImg);
-        abilitySprite.setTexture(abilityTexture);
-
-        // Масштаб под размеры Iconrect2 (здесь задаём позже, пока предварительно)
-        float abilitySize = 150.f;
-        float scaleX = abilitySize / abilityTexture.getSize().x;
-        float scaleY = abilitySize / abilityTexture.getSize().y;
-        abilitySprite.setScale(scaleX, scaleY);
-        abilitySprite.setOrigin(abilityTexture.getSize().x / 2.f, abilityTexture.getSize().y / 2.f);
-
-        // Загрузка рамки
-        FrameImage.loadFromFile(Frame);
-        FrameTexture.loadFromImage(FrameImage);
-        FrameSprite.setTexture(FrameTexture);
-
-        // Настройка текста
-        text.setString(L"Получить");
-        canclick = CanClick;
-        rect.setSize(Vector2f(Recwidth, Recheight));
-        FrameSprite.setScale(float(Recwidth) / FrameTexture.getSize().x, float(Recheight) / FrameTexture.getSize().y);
-
-        Iconrect.setSize(Vector2f(600 * 0.2f + 40, 600 * 0.2f + 40));
-        Iconrect2.setSize(Vector2f(600 * 0.2f + 30, 600 * 0.2f + 30));
-
-        rectcolor = colorshape;
-        rect.setFillColor(rectcolor);
-        Iconrect.setFillColor(Color(50, 50, 50));
-        Iconrect2.setFillColor(Color(235, 210, 170));
-        font = Font;
-        legend = Legend;
-        textSize = TextSize;
-        rect.setPosition(PosX, PosY);
-        FrameSprite.setPosition(PosX, PosY);
-
-        text.setFont(font);
-        AbilityNameText.setFont(font);
-        AbilityNameText.setString(Legend);
-        text.setCharacterSize(textSize);
-        AbilityNameText.setCharacterSize(textSize);
-        textcolor = colortext;
-        text.setFillColor(Color(176, 139, 25));
-        AbilityNameText.setFillColor(textcolor);
-
-        Textrect = text.getLocalBounds();
-
-        AbilityNameText.setPosition(PosX + ((Recwidth / 2.f) - (AbilityNameText.getLocalBounds().width / 2.f)), PosY + 30);
-        Iconrect.setPosition(PosX + ((Recwidth / 2.f) - (Iconrect.getSize().x / 2.f)), PosY + ((Recheight / 2.5f) - (Iconrect.getSize().y / 2.f)) + 25);
-        Iconrect2.setPosition(PosX + ((Recwidth / 2.f) - (Iconrect2.getSize().x / 2.f)), PosY + ((Recheight / 2.5f) - (Iconrect2.getSize().y / 2.f)) + 25);
-
-        // Центрирование abilitySprite по Iconrect2
-        abilitySprite.setPosition(
-            Iconrect2.getPosition().x + Iconrect2.getSize().x / 2.f,
-            Iconrect2.getPosition().y + Iconrect2.getSize().y / 2.f
-        );
-
-        text.setPosition(PosX + ((Recwidth / 2.f) - (Textrect.width / 2.f)), PosY + Recheight - 110);
-        text.setOutlineThickness(Thickness);
-        AbilityNameText.setOutlineThickness(Thickness);
-        text.setOutlineColor(Color(50, 50, 50));
-        AbilityNameText.setOutlineColor(Color(20, 20, 20));
-
-        levelBg.setFillColor(Color(30, 30, 30));
-        levelBg.setSize(Vector2f(Iconrect.getSize().x, 30));
-        levelBg.setPosition(Iconrect.getPosition().x, Iconrect.getPosition().y + Iconrect.getSize().y + 5);
-
-        float levelWidth = (levelBg.getSize().x - 20) / 3;
-
-        level1.setFillColor(Color(201, 173, 32));
-        level1.setSize(Vector2f(levelWidth, 20));
-        level1.setPosition(levelBg.getPosition().x + 5, levelBg.getPosition().y + 5);
-
-        level2.setFillColor(Color(201, 173, 32));
-        level2.setSize(Vector2f(levelWidth, 20));
-        level2.setPosition(levelBg.getPosition().x + levelWidth + 10, levelBg.getPosition().y + 5);
-
-        level3.setFillColor(Color(201, 173, 32));
-        level3.setSize(Vector2f(levelWidth, 20));
-        level3.setPosition(levelBg.getPosition().x + 2 * levelWidth + 15, levelBg.getPosition().y + 5);
-    }
-
-    int ButtonUpdate(RenderWindow& window, Clock& UpgradeClock, Event event = Event(), int CountOfMoney = 0)
-    {
-        delttime = UpgradeClock.getElapsedTime().asMilliseconds();
-
-        window.draw(rect);
-        window.draw(Iconrect);
-        window.draw(Iconrect2);
-        window.draw(text);
-        window.draw(AbilityNameText);
-        window.draw(abilitySprite);
-        window.draw(FrameSprite);
-        window.draw(levelBg);
-
-        if (upgradeLevel >= 1) 
-        {
-            window.draw(level1);
-            text.setString(L"Улучшить");
-        }
-        if (upgradeLevel >= 2) window.draw(level2);
-        if (upgradeLevel >= 3) window.draw(level3);
-
-        if (canclick)
-        {
-            Vector2i MousePos = Mouse::getPosition(window);
-            return ContainsCheck(window, MousePos, event, UpgradeClock);
-        }
-
-        return 0;
-    }
-
-    int ContainsCheck(RenderWindow& window, Vector2i MousePos, Event event, Clock& UpgradeClock)
-    {
-        Vector2f worldPos = window.mapPixelToCoords(MousePos);
-
-        if (text.getGlobalBounds().contains(worldPos))
-            text.setOutlineColor(Color(200, 200, 200));
-        else
-            text.setOutlineColor(Color(50, 50, 50));
-
-        if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
-        {
-            if (rect.getGlobalBounds().contains(worldPos) && delttime > 200)
-            {
-                UpgradeClock.restart();
-                if (upgradeLevel < 3)
-                {
-                    upgradeLevel++;
-                    return 1;
-                }
-            }
-        }
-        return 0;
-    }
-
-    Color getTextColor() 
-    {
-        return text.getFillColor();
-    }
-    void setTextColor(const Color& colortext)
-    { 
-        textcolor = colortext; 
-    text.setFillColor(textcolor); 
-    }
-    void setOutlineColor(const Color& color)
-    { 
-        text.setOutlineColor(color); 
-    }
-
-    Text getText() { return text; }
-
-    void setText(const String& newtext) 
-    { 
-        legend = newtext; 
-        text.setString(newtext);
-    }
-    int getWidth() 
-    { 
-        return rect.getLocalBounds().width; 
-    }
-    int getHeight()
-    { 
-        return rect.getLocalBounds().height; 
-    }
-    RectangleShape getRect()
-    { 
-        return rect;
-    }
-    FloatRect getTextRect()
-    {
-        return Textrect;
-    }
-
-    int getUpgradeLevel() const
-    { 
-        return upgradeLevel;
-    }
-
-    ~UpgradeAbility() {}
 };
 #endif
