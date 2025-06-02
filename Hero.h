@@ -20,7 +20,7 @@ private:
 
 public:
 	int Level = 0;
-	int UpgradePoint = 1; // если true - вызвать триггер прокачки навыка
+	int UpgradePoint = 6; // ѕќ“ќћ ѕќћ≈Ќя“№ Ќј 1
 	int HaveAbilities[6] = { 0, 0, 0, 0, 0, 0 };
 	int health;
 	int damageBoost;

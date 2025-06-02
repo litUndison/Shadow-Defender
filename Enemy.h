@@ -16,7 +16,7 @@ private:
 	int damage = 15;
 	//интервал 0.5 секунды
 	Texture enemy_texture;
-	Texture damage_texture;
+	//Texture damage_texture;
 	Sprite damage_sprite;
 	/*Clock damageClock;*/
 	FloatRect enemyBounds;
@@ -42,17 +42,17 @@ public:
 	int lastHitByProjectile = -1;
 	//bool canTakeDamage = true;
 
-	Enemy(Image& Image, string way_path, int x, int y)
+	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y)
 	{
-		damage_texture.loadFromFile(way_path);
+		//damage_texture.loadFromFile(way_path);
 		damage_sprite.setTexture(damage_texture);
 		damage_sprite.setScale(Vector2f(0.2f, 0.2f));
 		damage_sprite.setColor(Color(255, 255, 255, 0));
 
 		/*enemy_image.loadFromFile("data/images/car.png");*/
-		enemy_image = Image;
-		enemy_texture.loadFromImage(enemy_image);
-		enemy_sprite.setTexture(enemy_texture);
+		//enemy_image.loadFromFile("data/images/enemy.psd");
+		//enemy_texture.loadFromImage(enemy_image);
+		enemy_sprite.setTexture(texture);
 		enemy_sprite.setPosition(x, y);
 		enemyBounds = enemy_sprite.getGlobalBounds();
 		enemy_sprite.setScale(sf::Vector2f(0.2f, 0.2f));
@@ -291,8 +291,8 @@ public:
 	}
 	bool EnemyUpdate(RenderWindow& window)
 	{
-		enemy_sprite.setTexture(enemy_texture);
-		damage_sprite.setTexture(damage_texture);
+		//enemy_sprite.setTexture(enemy_texture);
+		//damage_sprite.setTexture(damage_texture);
 		window.draw(enemy_sprite);
 		window.draw(damage_sprite);
 		if (health <= 0)

@@ -208,29 +208,37 @@ public:
     ~EXPSlider() {
     }
 };
-class Ability1 // удар перед собой
+class Ability1
 {
 private:
     Texture ability_texture;
-    Sprite ability_sprite;
-    
+    Sprite ability_sprite_forward;
+    Sprite ability_sprite_backward;
+
     bool active = false;
     Vector2f direction;
-    float speed = 15.f; // пикселей в секунду
-    int damage = 25;
-    //float deltaTime;
+    float speed = 10.f;
+    int damage = 10;
     Vector2f startPosition;
+    bool useDoubleAttack = false;
+    int maxDistance = 250;
 
 public:
     int Level = 1;
+
     Ability1(int Damage, string Directory)
     {
-
         damage = Damage;
         ability_texture.loadFromFile(Directory);
-        ability_sprite.setTexture(ability_texture);
-        ability_sprite.setOrigin(ability_texture.getSize().x / 2, ability_texture.getSize().y / 2);
-        ability_sprite.setScale(0.5f, 0.5f);
+
+        ability_sprite_forward.setTexture(ability_texture);
+        ability_sprite_backward.setTexture(ability_texture);
+
+        ability_sprite_forward.setOrigin(ability_texture.getSize().x / 2, ability_texture.getSize().y / 2);
+        ability_sprite_backward.setOrigin(ability_texture.getSize().x / 2, ability_texture.getSize().y / 2);
+
+        ability_sprite_forward.setScale(0.5f, 0.5f);
+        ability_sprite_backward.setScale(0.5f, 0.5f);
     }
 
     void attack(const sf::Sprite& heroSprite, Hero& character)
@@ -240,90 +248,149 @@ public:
 
         switch (character.HeroDirection)
         {
-        case 0: //влево
-            ability_sprite.setPosition(heroSprite.getPosition().x, heroSprite.getPosition().y + 29);
+        case 0:
+            direction = Vector2f(-1.f, 0.f);
+            ability_sprite_forward.setPosition(heroSprite.getPosition().x, heroSprite.getPosition().y + 29);
+            ability_sprite_backward.setPosition(heroSprite.getPosition().x + 48, heroSprite.getPosition().y + 29);
+            ability_sprite_forward.setRotation(180);
+            ability_sprite_backward.setRotation(0);
             break;
-        case 1: //вправо
-            ability_sprite.setPosition(heroSprite.getPosition().x + 48, heroSprite.getPosition().y + 29);
+        case 1:
+            direction = Vector2f(1.f, 0.f);
+            ability_sprite_forward.setPosition(heroSprite.getPosition().x + 48, heroSprite.getPosition().y + 29);
+            ability_sprite_backward.setPosition(heroSprite.getPosition().x, heroSprite.getPosition().y + 29);
+            ability_sprite_forward.setRotation(0);
+            ability_sprite_backward.setRotation(180);
             break;
         case 2:
-            ability_sprite.setPosition(heroSprite.getPosition().x + 24, heroSprite.getPosition().y);
+            direction = Vector2f(0.f, -1.f);
+            ability_sprite_forward.setPosition(heroSprite.getPosition().x + 24, heroSprite.getPosition().y);
+            ability_sprite_backward.setPosition(heroSprite.getPosition().x + 24, heroSprite.getPosition().y + 58);
+            ability_sprite_forward.setRotation(-90);
+            ability_sprite_backward.setRotation(90);
             break;
         case 3:
-            ability_sprite.setPosition(heroSprite.getPosition().x + 24, heroSprite.getPosition().y + 58);
+            direction = Vector2f(0.f, 1.f);
+            ability_sprite_forward.setPosition(heroSprite.getPosition().x + 24, heroSprite.getPosition().y + 58);
+            ability_sprite_backward.setPosition(heroSprite.getPosition().x + 24, heroSprite.getPosition().y);
+            ability_sprite_forward.setRotation(90);
+            ability_sprite_backward.setRotation(-90);
             break;
         }
-        startPosition = ability_sprite.getPosition();
 
-        // Направление в зависимости от направления героя
-        switch (character.HeroDirection)
-        {
-        case 0: //влево
-            direction = sf::Vector2f(-1.f, 0.f);
-            ability_sprite.setRotation(180);
-            //ability_sprite.setPosition(heroSprite.getPosition().x, heroSprite.getPosition().y + 20);
-            break;
-        case 1: //вправо
-            direction = sf::Vector2f(1.f, 0.f);
-            ability_sprite.setRotation(0);
-            //ability_sprite.setPosition(heroSprite.getPosition().x, heroSprite.getPosition().y + 20);
-            break;
-        case 2: //вверх
-            direction = sf::Vector2f(0.f, -1.f);
-            ability_sprite.setRotation(-90);
-            //ability_sprite.setPosition(heroSprite.getPosition().x+20, heroSprite.getPosition().y);
-            break;
-        case 3: //вниз
-            direction = sf::Vector2f(0.f, 1.f);
-            ability_sprite.setRotation(90);
-
-            break;
-        }
+        startPosition = heroSprite.getPosition();
         active = true;
     }
 
-    void update(sf::RenderWindow& window, /*Clock& Ability1clock*/ vector<Enemy>& enemies)
+    void update(sf::RenderWindow& window, vector<Enemy>& enemies)
     {
         if (active == false)
             return;
 
-        // deltaTime = Ability1clock.getElapsedTime().asMilliseconds();
+        float dx = ability_sprite_forward.getPosition().x - startPosition.x;
+        float dy = ability_sprite_forward.getPosition().y - startPosition.y;
+        float distance = sqrt(dx * dx + dy * dy);
 
-        if (sqrt(pow(ability_sprite.getPosition().x - startPosition.x, 2) + pow(ability_sprite.getPosition().y - startPosition.y, 2)) > 250)
+        if (distance > maxDistance)
         {
             active = false;
-            for (auto& enemy : enemies)
+            for (int i = 0; i < enemies.size(); i++)
             {
-                enemy.CanTakeDamage[0] = true;
-                enemy.canPush = true;
-                //enemy.canTakeDamage = false;
+                enemies[i].CanTakeDamage[0] = true;
+                enemies[i].canPush = true;
             }
             return;
         }
 
-        // Движение снаряда
-        ability_sprite.move(direction * speed);
+        ability_sprite_forward.move(direction * speed);
+        if (useDoubleAttack)
+            ability_sprite_backward.move(-direction * speed);
 
-        // Проверка попадания во врагов
-        sf::FloatRect bounds = ability_sprite.getGlobalBounds();
-        for (auto& enemy : enemies)
+        FloatRect bounds1 = ability_sprite_forward.getGlobalBounds();
+        for (int i = 0; i < enemies.size(); i++)
         {
-            if (enemy.getGlobalBounds().intersects(bounds))
+            if (enemies[i].getGlobalBounds().intersects(bounds1))
             {
-                enemy.takeDamage(damage, 0);
-                if (enemy.canPush)
+                enemies[i].takeDamage(damage, 0);
+                if (enemies[i].canPush)
                 {
-                    enemy.enemy_sprite.move(direction * 50.f);
-                    enemy.canPush = false;
+                    enemies[i].enemy_sprite.move(direction * 50.f);
+                    enemies[i].canPush = false;
                 }
+            }
+        }
 
-                //enemy.canTakeDamage = false;
+        if (useDoubleAttack)
+        {
+            FloatRect bounds2 = ability_sprite_backward.getGlobalBounds();
+            for (int i = 0; i < enemies.size(); i++)
+            {
+                if (enemies[i].getGlobalBounds().intersects(bounds2))
+                {
+                    enemies[i].takeDamage(damage, 0);
+                    if (enemies[i].canPush)
+                    {
+                        enemies[i].enemy_sprite.move(-direction * 50.f);
+                        enemies[i].canPush = false;
+                    }
+                }
             }
         }
     }
-    Sprite getSprite()
+
+    void draw(sf::RenderWindow& window)
     {
-        return ability_sprite;
+        if (active == true)
+        {
+            window.draw(ability_sprite_forward);
+            if (useDoubleAttack)
+                window.draw(ability_sprite_backward);
+        }
+    }
+
+    void setUpgradeLevel(int level)
+    {
+        if (level > 6)
+            level = 6;
+
+        Level = level;
+
+        switch (Level)
+        {
+        case 2:
+            damage += 5;
+            speed += 5;
+            break;
+        case 3:
+            ability_sprite_forward.setScale(0.5f, 0.6f);
+            ability_sprite_backward.setScale(0.5f, 0.6f);
+            maxDistance += 100;
+            break;
+        case 4:
+            ability_sprite_forward.setScale(0.5f, 0.7f);
+            ability_sprite_backward.setScale(0.5f, 0.7f);
+            maxDistance += 100;
+            damage += 5;
+            speed += 5;
+            break;
+        case 5:
+            damage += 5;
+            speed += 5;
+            break;
+        case 6:
+            useDoubleAttack = true;
+            maxDistance += 100;
+            break;
+        }
+    }
+
+    Sprite getSprite1()
+    {
+        return ability_sprite_forward;
+    }
+    Sprite getSprite2()
+    {
+        return ability_sprite_backward;
     }
     bool isActive() const
     {
@@ -332,6 +399,7 @@ public:
 
     ~Ability1() {}
 };
+
 class Ability2 // выстрел в ближайшего врага
 {
 private:
@@ -965,16 +1033,16 @@ public:
         }
     }
 
-    void Update(RenderWindow& window/*, bool HaveAbilities[6]*/, Hero& hero) // спорная херня, надо переделать
+    void Update(RenderWindow& window/*, bool HaveAbilities[6]*/, Hero& hero, Ability1& ability1, Ability2& ability2, Ability3& ability3, Ability4& ability4) // спорная херня, надо переделать
     {
         if (hero.UpgradePoint > 0)
         {
             for (int i = 0; i < 6; ++i)
             {
-                Upgrades[i].setColor(Color(50, 50, 50));
-                Upgrades[i].justDraw(window);
                 if (hero.HaveAbilities[i] < 6)
                 {
+                    Upgrades[i].setColor(Color(50, 50, 50));
+                    Upgrades[i].justDraw(window);
                     UpgradeTime = UpgradeClock.getElapsedTime().asMilliseconds();
                     if (UpgradeTime >= 200)
                     {
@@ -988,6 +1056,34 @@ public:
                                 CanDrawed[i] = true;
                             hero.UpgradePoint -= 1;
                             UpgradeClock.restart();
+                            switch (i) // да я обосрался и сделал так. А всё потому что тупень и решил не делать массивы и наследование. Теперь придётся мучаться с шедеврокодом
+                            {
+                            case 0:
+                            {
+                                ability1.setUpgradeLevel(hero.HaveAbilities[i]);
+                                break;
+                            }
+                            case 1:
+                            {
+                                break;
+                            }
+                            case 2:
+                            {
+                                break;
+                            }
+                            case 3:
+                            {
+                                break;
+                            }
+                            case 4:
+                            {
+                                break;
+                            }
+                            case 5:
+                            {
+                                break;
+                            }
+                            }
                         }
 
                     }

@@ -917,11 +917,15 @@ int GameStart()
 
 		vector<Enemy> enemies;
 		vector<Enemy>::iterator iter;
-		Image enemy_image;
+		Texture enemy_texture;
+		Texture enemy_damage_texture;
+
 		float deltatime;
 		Event close;
 		Event event;
-		enemy_image.loadFromFile("data/images/enemy.psd");
+
+		enemy_texture.loadFromFile("data/images/enemy.psd");
+		enemy_damage_texture.loadFromFile("data/images/DamageAnim.psd");
 		bool StartGame = false;
 		Clock LoadingClock;
 		float LoadingTime = LoadingClock.getElapsedTime().asSeconds();
@@ -1012,7 +1016,7 @@ int GameStart()
 				if (gamePause != 1 && Keyboard::isKeyPressed(Keyboard::M))
 				{
 					Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-					Enemy enemy(enemy_image, "data/images/DamageAnim.psd", spawnPos.x, spawnPos.y);
+					Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y);
 					enemies.emplace_back(enemy);
 					//cout << "Number of enemies: " << enemies.size() << endl;
 					clock1.restart();
@@ -1184,7 +1188,11 @@ int GameStart()
 			//	enemies[i].EnemyUpdate(window); // Рисуем каждого врага по индексу
 			//}
 			if (ability1.isActive() && Hero.HaveAbilities[0])
-				window.draw(ability1.getSprite());
+			{
+				window.draw(ability1.getSprite1());
+				if (ability1.Level == 6)
+					window.draw(ability1.getSprite2());
+			}
 			if (ability2.isActive() && Hero.HaveAbilities[1])
 				window.draw(ability2.getSprite());
 			if (enemies.size() != 0 && Hero.HaveAbilities[2])
@@ -1206,7 +1214,7 @@ int GameStart()
 			window.draw(timerText);
 			//HealthBar.setPosition(50, 50); // позиция фиксированная на экране
 			HealthBar.Update(window, Hero.health);
-			Abilities.Update(window/*, Hero.HaveAbilities*/, Hero);
+			Abilities.Update(window/*, Hero.HaveAbilities*/, Hero, ability1, ability2, ability3, ability4);
 			EXPBar.Update(window);
 			//HealthBar.setPosition(50, 50);
 			if (LoadingRect.getFillColor().a > 0)
