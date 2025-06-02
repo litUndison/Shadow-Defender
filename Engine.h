@@ -1191,9 +1191,13 @@ int GameStart()
 				ability3.draw(window);
 			if (enemies.size() != 0 && Hero.HaveAbilities[3])
 				ability4.draw(window);
-			for (auto& enemy : enemies)
+			/*for (auto& enemy : enemies)
 			{
 				enemy.EnemyUpdate(window);
+			}*/
+			for (int i = 0; i < enemies.size(); i++)
+			{
+				enemies[i].EnemyUpdate(window);
 			}
 			Hero.HeroDraw(window);
 			//----------------ÎÒÎÁÐÀÆÅÍÈÅ ÈÍÒÅÐÔÅÉÑÀ-------------------

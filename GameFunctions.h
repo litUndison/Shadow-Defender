@@ -803,6 +803,15 @@ public:
             return false;
         }
     }
+    void justDraw(RenderWindow& window)
+    {
+        window.draw(ColorAnim);
+        window.draw(UpgradeSprite);
+    }
+    void setColor(Color color)
+    {
+        ColorAnim.setFillColor(color);
+    }
     ~UpgradeAbility() {}
 };
 
@@ -962,6 +971,8 @@ public:
         {
             for (int i = 0; i < 6; ++i)
             {
+                Upgrades[i].setColor(Color(50, 50, 50));
+                Upgrades[i].justDraw(window);
                 if (hero.HaveAbilities[i] < 6)
                 {
                     UpgradeTime = UpgradeClock.getElapsedTime().asMilliseconds();
