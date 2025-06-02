@@ -221,7 +221,7 @@ private:
     int damage = 10;
     Vector2f startPosition;
     bool useDoubleAttack = false;
-    int maxDistance = 250;
+    int maxDistance = 100;
 
 public:
     int Level = 1;
@@ -364,7 +364,7 @@ public:
         case 3:
             ability_sprite_forward.setScale(0.5f, 0.6f);
             ability_sprite_backward.setScale(0.5f, 0.6f);
-            maxDistance += 100;
+            maxDistance += 150;
             break;
         case 4:
             ability_sprite_forward.setScale(0.5f, 0.7f);
