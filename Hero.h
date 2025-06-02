@@ -20,8 +20,8 @@ private:
 
 public:
 	int Level = 0;
-	int UpgradePoint = 0; // если true - вызвать триггер прокачки навыка
-	bool HaveAbilities[6] = { false, false, false, false, false, false };
+	int UpgradePoint = 1; // если true - вызвать триггер прокачки навыка
+	int HaveAbilities[6] = { 0, 0, 0, 0, 0, 0 };
 	int health;
 	int damageBoost;
 	int armor;
@@ -38,12 +38,12 @@ public:
 	FloatRect inheroBounds;
 	FloatRect heroBounds;
 
-	Hero(int x, int y, int Health = 100, int DamageBoost = 0, int Armor = 0, int WhichAbilityHave = 0)
+	Hero(int x, int y, int Health = 100, int DamageBoost = 0, int Armor = 0/*, int WhichAbilityHave = 0*/)
 	{
 		health = Health;
 		damageBoost = DamageBoost;
 		armor = Armor;
-		HaveAbilities[WhichAbilityHave] = true;
+		//HaveAbilities[WhichAbilityHave] += true;
 
 		hero_image.loadFromFile("data/images/character1.png");
 		hero_texture.loadFromImage(hero_image);

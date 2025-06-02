@@ -729,8 +729,9 @@ public:
         width = UpgradeSprite.getGlobalBounds().width;
         height = UpgradeSprite.getGlobalBounds().height;
     }
-    void Update(RenderWindow& window, bool& CurrentAbility) //bool говно полное. Потом сделать массив int. Чтобы 0 - отсутствие навыка, а 6 - максимум
+    bool Update(RenderWindow& window, int& CurrentAbility) //bool говно полное. Потом сделать массив int. Чтобы 0 - отсутствие навыка, а 6 - максимум
     {
+        static bool wasPressed = false;
         float deltaTime = deltaClock.restart().asSeconds();
         Vector2i MousePos = Mouse::getPosition(window);
         Vector2f worldPos = window.mapPixelToCoords(MousePos);
@@ -748,7 +749,6 @@ public:
 
         if (isPressed) 
         {
-            CurrentAbility = true;
             UpgradeSprite.setOrigin(UpgradeSprite.getGlobalBounds().width / 2, UpgradeSprite.getGlobalBounds().height / 2);
             UpgradeSprite.setScale(ScaleX-0.01f, ScaleY-0.01f);  // чуть уменьшаем
             UpgradeSprite.setOrigin(0, 0);
@@ -788,6 +788,20 @@ public:
 
         window.draw(ColorAnim);
         window.draw(UpgradeSprite);
+        
+
+        if (isPressed)
+        {
+            // Кнопку отпустили
+            CurrentAbility += 1;
+            //wasPressed = false; // Обновляем состояние
+            return true;
+        }
+        else
+        {
+            //wasPressed = MousePressed; // Обновляем состояние
+            return false;
+        }
     }
     ~UpgradeAbility() {}
 };
@@ -800,6 +814,10 @@ private:
     Texture AbilityTextures[6];
 
     Sprite AbilitySprites[6];
+
+    RectangleShape UpgradeLevel[6][6]; // первое число - номер навыка, второе - уровень
+    RectangleShape UpgradeBG[6];
+
     Texture UpgradeTexture;
 
     vector <UpgradeAbility> Upgrades;
@@ -807,28 +825,60 @@ private:
     Texture IconTexture;
     Sprite IconSprite;
     bool CanDrawed[6] = { false,false,false,false,false,false };
+    Clock UpgradeClock;
+    float UpgradeTime;
 public:
-    AbilitiesUI(int PosX, int PosY, int RectSize, int SpaceBetween, string way_path1, string way_path2, string way_path3, string way_path4, string way_path5, string way_path6, string way_path_icon)
+    AbilitiesUI(int PosX, int PosY, int RectSize, int SpaceBetween, string AbilitiesWayPath[6], string way_path_icon)
     {
         UpgradeTexture.loadFromFile("data/images/UpgradeButton.png");
-        AbilityTextures[0].loadFromFile(way_path1);
+
+        for (int i = 0; i < 6; i++)
+        {
+            AbilityTextures[i].loadFromFile(AbilitiesWayPath[i]);
+        }
+
+        for (int i = 0; i < 6; i++)
+        {
+            for (int j = 0; j < 6; j++)
+            {
+                UpgradeLevel[i][j].setFillColor(Color(100, 100, 100, 200));
+                UpgradeLevel[i][j].setSize(Vector2f(18, 18));
+            }
+
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            UpgradeBG[i].setFillColor(Color(50, 50, 50, 200));
+            UpgradeBG[i].setSize(Vector2f(70, 48));
+        }
+        /*AbilityTextures[0].loadFromFile(way_path1);
         AbilityTextures[1].loadFromFile(way_path2);
         AbilityTextures[2].loadFromFile(way_path3);
         AbilityTextures[3].loadFromFile(way_path4);
         AbilityTextures[4].loadFromFile(way_path5);
-        AbilityTextures[5].loadFromFile(way_path6);
+        AbilityTextures[5].loadFromFile(way_path6);*/
         IconTexture.loadFromFile(way_path_icon);
 
-
-        AbilitySprites[0].setTexture(AbilityTextures[0]);
+        for (int i = 0; i < 6; i++)
+        {
+            AbilitySprites[i].setTexture(AbilityTextures[i]);
+        }
+        
+        /*AbilitySprites[0].setTexture(AbilityTextures[0]);
         AbilitySprites[1].setTexture(AbilityTextures[1]);
         AbilitySprites[2].setTexture(AbilityTextures[2]);
         AbilitySprites[3].setTexture(AbilityTextures[3]);
         AbilitySprites[4].setTexture(AbilityTextures[4]);
-        AbilitySprites[5].setTexture(AbilityTextures[5]);
+        AbilitySprites[5].setTexture(AbilityTextures[5]);*/
         IconSprite.setTexture(IconTexture);
 
-        AbilityRects[0].setSize(Vector2f(RectSize, RectSize));
+        for (int i = 0; i < 6; i++)
+        {
+            AbilityRects[i].setSize(Vector2f(RectSize, RectSize));
+            AbilityRects[i].setFillColor(Color(70, 70, 70, 220));
+        }
+
+        /*AbilityRects[0].setSize(Vector2f(RectSize, RectSize));
         AbilityRects[0].setFillColor(Color(70, 70, 70, 220));
 
         AbilityRects[1].setSize(Vector2f(RectSize, RectSize));
@@ -844,7 +894,7 @@ public:
         AbilityRects[4].setFillColor(Color(70, 70, 70, 220));
 
         AbilityRects[5].setSize(Vector2f(RectSize, RectSize));
-        AbilityRects[5].setFillColor(Color(70, 70, 70, 220));
+        AbilityRects[5].setFillColor(Color(70, 70, 70, 220));*/
 
         IconSprite.setScale(float(RectSize) / IconTexture.getSize().x, float(RectSize) / IconTexture.getSize().y);
 
@@ -872,16 +922,34 @@ public:
         AbilitySprites[5].setScale(float(RectSize - 10) / AbilityTextures[5].getSize().x, float(RectSize - 10) / AbilityTextures[5].getSize().y);
         AbilitySprites[5].setPosition(AbilityRects[5].getPosition().x + 5, AbilityRects[5].getPosition().y + 5);
 
+        
+
+        for (int i = 0; i < 6; i++)
+        {
+            int pos = 0;
+            UpgradeBG[i].setPosition(AbilityRects[i].getPosition().x, AbilityRects[i].getPosition().y + RectSize);
+            for (int j = 0; j < 6; j++)
+            {
+                if (pos < 3)
+                    UpgradeLevel[i][j].setPosition(AbilityRects[i].getPosition().x + UpgradeLevel[i][j].getSize().x * pos + 4 * (pos+1), AbilityRects[i].getPosition().y + RectSize + 4);// это рамочка))
+                else
+                    UpgradeLevel[i][j].setPosition(AbilityRects[i].getPosition().x + UpgradeLevel[i][j].getSize().x * (pos - 3) + 4 * (pos - 2), AbilityRects[i].getPosition().y + RectSize + 4 + UpgradeLevel[i][j].getSize().y + 4);
+                pos += 1;
+            }
+
+        }
+        
+
         for (int i = 0; i < 6; ++i) {
             Upgrades.emplace_back(RectSize, AbilityRects[i].getPosition().x, PosY, UpgradeTexture); // вызывается конструктор с аргументами
         }
 
     }
-    void UpdateAbilities(bool HaveAbilities[6])
+    void UpdateAbilities(int HaveAbilities[6])
     {
         for (int i = 0; i < 6; i++)
         {
-            if (HaveAbilities[i] == true)
+            if (HaveAbilities[i] > 0)
             {
                 CanDrawed[i] = true;
             }
@@ -890,19 +958,29 @@ public:
 
     void Update(RenderWindow& window/*, bool HaveAbilities[6]*/, Hero& hero) // спорная херня, надо переделать
     {
-        bool test;
         if (hero.UpgradePoint > 0)
         {
             for (int i = 0; i < 6; ++i)
             {
-                if (hero.HaveAbilities[i] != true)
-                    test = hero.HaveAbilities[i];
-                Upgrades[i].Update(window, test);
-                if (test == true)
+                if (hero.HaveAbilities[i] < 6)
                 {
-                    hero.HaveAbilities[i] = test;
-                    CanDrawed[i] == true;
-                    hero.UpgradePoint -= 1;
+                    UpgradeTime = UpgradeClock.getElapsedTime().asMilliseconds();
+                    if (UpgradeTime >= 200)
+                    {
+                        if (Upgrades[i].Update(window, hero.HaveAbilities[i]))
+                            //hero.HaveAbilities[i] = test;
+                        {
+                            //hero.HaveAbilities[i] += 1;
+                            for (int j = 0; j < hero.HaveAbilities[i]; j++)
+                                UpgradeLevel[i][j].setFillColor(Color(235, 192, 52));
+                            if (!CanDrawed[i])
+                                CanDrawed[i] = true;
+                            hero.UpgradePoint -= 1;
+                            UpgradeClock.restart();
+                        }
+
+                    }
+                    
                 }
             }
         }
@@ -914,16 +992,25 @@ public:
 
         for (int i = 0; i < 6; i++)
         {
+            window.draw(UpgradeBG[i]);
+            for (int j = 0; j < 6; j++)
+            {
+                window.draw(UpgradeLevel[i][j]);
+            }
+
+        }
+
+        for (int i = 0; i < 6; i++)
+        {
             if (CanDrawed[i] == true)
             {
                 AbilitySprites[i].setColor(Color(255, 255, 255));
-                window.draw(AbilitySprites[i]);
             }
             else 
             {
                 AbilitySprites[i].setColor(Color(100, 100, 100));
-                window.draw(AbilitySprites[i]);
             }
+            window.draw(AbilitySprites[i]);
         }
 
         for (int i = 0; i < 6; i++)

@@ -770,7 +770,7 @@ int GameStart()
 
 		//--------------------------------цкюбмне лемч (йнмеж)----------------------------
 
-		Hero Hero(200, 200, 150, 0, 0, 0);
+		Hero Hero(200, 200, 150, 0, 0);
 
 		Music GameMusic1;
 		GameMusic1.openFromFile("data/music/Game1.mp3");
@@ -846,7 +846,8 @@ int GameStart()
 		int RotateScale = 0;
 		//
 		/*AbilitiesUI(int PosX, int PosY, int RectSize, int SpaceBetween, string way_path1, string way_path2, string way_path3, string way_path4, string way_path5, string way_path6)*/
-		AbilitiesUI Abilities(70, 950, 70, 5, "data/images/Weapon1Icon.png", "data/images/Weapon2Icon.psd", "data/images/Attack3.png", "data/images/Weapon4Icon.psd", "data/images/Attack1.png", "data/images/Attack1.png", "data/images/WeaponIcon.png");
+		string AbilitiesWayPath[6] = { "data/images/Weapon1Icon.png", "data/images/Weapon2Icon.psd", "data/images/Attack3.png", "data/images/Weapon4Icon.psd", "data/images/Attack1.png", "data/images/Attack1.png" };
+		AbilitiesUI Abilities(50, 920, 70, 10, AbilitiesWayPath, "data/images/WeaponIcon.png");
 		//-----------------------всрэ-всрэ хмрептеияю хцпш(йнмеж)--------------------------
 		// 
 		//яонянамнярх
