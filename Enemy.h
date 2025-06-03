@@ -10,7 +10,7 @@ class Enemy {
 
 private:
 	int health = 100;
-	int enemy_speed = 2;
+	
 	float CurrentFrame = 0;
 	int HeroDirection = 3;
 	int damage = 15;
@@ -32,6 +32,7 @@ private:
 	int CountOfEXP = 10;
 
 public:
+	int enemy_speed = 2;
 	Clock Damage3Cooldown;
 
 	bool canPush = true;

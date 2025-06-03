@@ -616,7 +616,7 @@ public:
     }
     void update(const Sprite& heroSprite, vector<Enemy>& enemies)
     {
-        float deltaTime = 1.f / 60.f; // если ты не передаёшь его, иначе замени
+        float deltaTime = 1.f / 60.f;
 
         if (fadingIn)
         {
@@ -855,9 +855,13 @@ public:
                     enemy.CanTakeDamage[3] = true;
                     enemy.takeDamage(damage, 3);
                     enemy.damageCooldown.restart();
+                    enemy.enemy_speed = 1; //уменьшение в два раза. Говно, надо переделывать. Но идея хорошая
+
                 }
 
             }
+            else
+                enemy.enemy_speed = 2;
         }
 
 
