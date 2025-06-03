@@ -400,160 +400,144 @@ public:
     ~Ability1() {}
 };
 
-class Ability2 // выстрел в ближайшего врага
+class Ability2
 {
 private:
+    const int MAX_PROJECTILES = 15;
+
     Texture ability_texture;
-    Music AttackSound;
-    Clock AttackClock;
+    Music AttackSound[15];
 
-    float cooldown = 1.f; // кулдаун между выстрелами
-    float speed = 25.f;   // пикселей в секунду
-
-    bool active = false;
-    Vector2f direction;
-    int damage = 25;
-    Vector2f startPosition;
-    Vector2f endPosition;
+    float cooldown = 1.f; // интервал между выстрелами
+    float speed = 25.f;
+    int damage = 10;
     float range = 2000.f;
 
-    bool targetAcquired = false;
-    vector<bool> canDamage;
+    Sprite projectiles[15];
+    Clock projectileTimers[15];     // таймеры каждого снаряда
+    bool isActive[15] = { false };
+    bool canDamage[15] = { true };
+    Vector2f directions[15];
+    Vector2f startPositions[15];
+    Vector2f endPositions[15];
 
-    
+    Clock globalTimer; // используется для атаки
 
 public:
+    int numProjectiles = 1; // можно менять во время игры
     int Level = 1;
-    vector<Sprite> ability_sprite;
-    int currentProjectileCount = 6; // текущее число снарядов (макс. 6)
-    Ability2(int Damage, const string& Directory)
+    int DamageLimit = 1;
+
+    Ability2(int Damage, const string& Directory, float Cooldown = 1.f)
     {
-        AttackSound.openFromFile("data/music/Attack2.mp3");
         damage = Damage;
+        cooldown = Cooldown;
         ability_texture.loadFromFile(Directory);
-        setProjectileCount(currentProjectileCount);
-    }
+        
 
-    void setProjectileCount(int count)
-    {
-        if (count < 1) count = 1;
-        if (count > 6) count = 6;
-        currentProjectileCount = count;
-        ability_sprite.resize(currentProjectileCount);
-        canDamage.resize(currentProjectileCount, true);
-
-        for (int i = 0; i < currentProjectileCount; i++)
+        for (int i = 0; i < MAX_PROJECTILES; i++)
         {
-            ability_sprite[i].setTexture(ability_texture);
-            ability_sprite[i].setOrigin(ability_texture.getSize().x / 2.f, ability_texture.getSize().y / 2.f);
+            projectiles[i].setTexture(ability_texture);
+            projectiles[i].setOrigin(ability_texture.getSize().x / 2, ability_texture.getSize().y / 2);
+            AttackSound[i].openFromFile("data/music/Attack2.mp3");
+            AttackSound[i].setVolume(50);
         }
     }
 
-    void attack(const Sprite& heroSprite)
+    void update(const Sprite& heroSprite, vector<Enemy>& enemies)
     {
-        if (active) return;
+        float currentTime = globalTimer.getElapsedTime().asSeconds();
 
-        float timeSinceLastAttack = AttackClock.getElapsedTime().asSeconds();
-        if (timeSinceLastAttack < cooldown)
-            return;
-
-        AttackSound.play();
-
-        for (int i = 0; i < currentProjectileCount; i++)
-            ability_sprite[i].setPosition(heroSprite.getPosition().x + 24, heroSprite.getPosition().y + 29);
-
-        startPosition = ability_sprite[0].getPosition();
-
-        active = true;
-        targetAcquired = false;
-        AttackClock.restart();
-    }
-
-    void update(RenderWindow& window, vector<Enemy>& enemies)
-    {
-        if (!active) return;
-
-        // Определение цели
-        if (!targetAcquired)
+        for (int i = 0; i < numProjectiles; ++i)
         {
-            float minDistance = 2500.f;
-            for (auto& enemy : enemies)
+            int DamageCounts = 0;
+            // Если не активен — запускаем, если пришло время
+            if (!isActive[i] && projectileTimers[i].getElapsedTime().asSeconds() >= cooldown)
             {
-                Vector2f enemyPos = enemy.getPosition();
-                float dx = enemyPos.x - startPosition.x;
-                float dy = enemyPos.y - startPosition.y;
-                float distance = sqrt(dx * dx + dy * dy);
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    endPosition = enemyPos;
-                }
+                if (enemies.empty()) return;
+
+                // Запуск
+                AttackSound[i].play();
+                isActive[i] = true;
+                canDamage[i] = true;
+                projectileTimers[i].restart();
+
+                startPositions[i] = heroSprite.getPosition() + Vector2f(24, 29);
+                projectiles[i].setPosition(startPositions[i]);
+
+                int targetIndex = rand() % enemies.size();
+                endPositions[i] = enemies[targetIndex].getPosition();
+
+                Vector2f dir = endPositions[i] - startPositions[i];
+                float len = sqrt(dir.x * dir.x + dir.y * dir.y);
+                if (len != 0) dir /= len;
+
+                directions[i] = dir;
+
+                float angle = atan2(dir.y, dir.x) * 180.f / 3.14159265f;
+                projectiles[i].setRotation(angle);
             }
 
-            direction = endPosition - startPosition;
-            float length = sqrt(direction.x * direction.x + direction.y * direction.y);
-            if (length != 0)
-                direction /= length; // нормализация
+            // Если активен — движется
+            if (isActive[i])
+            {
+                projectiles[i].move(directions[i] * speed);
 
-            float angle = atan2(direction.y, direction.x) * 180.f / 3.14159265f;
-            for (int i = 0; i < currentProjectileCount; i++)
-                ability_sprite[i].setRotation(angle);
+                float traveled = sqrt(pow(projectiles[i].getPosition().x - startPositions[i].x, 2) +
+                    pow(projectiles[i].getPosition().y - startPositions[i].y, 2));
 
-            targetAcquired = true;
+                // Проверка столкновений
+                for (auto& enemy : enemies)
+                {
+                    if (canDamage[i] && enemy.getGlobalBounds().intersects(projectiles[i].getGlobalBounds()))
+                    {
+                        if (enemy.CanTakeDamage[i])
+                        {
+                            enemy.takeDamage(damage, 1);
+                            enemy.enemy_sprite.move(directions[i] * 50.f);
+                            DamageCounts += 1;
+                        }
+                        //canDamage[i] = false;
+                        if(DamageCounts == DamageLimit)
+                        {
+                            isActive[i] = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (traveled >= range)
+                {
+                    isActive[i] = false;
+                }
+
+            }
         }
-
-        // Движение
-        for (int i = 0; i < currentProjectileCount; i++)
-            ability_sprite[i].move(direction * speed);
-
-        float traveled = sqrt(pow(ability_sprite[0].getPosition().x - startPosition.x, 2) +
-            pow(ability_sprite[0].getPosition().y - startPosition.y, 2));
-
-        if (traveled > range)
-        {
-            deactivate();
-            return;
-        }
-
-        // Столкновение
-        vector<FloatRect> bounds(currentProjectileCount);
-        for (int i = 0; i < currentProjectileCount; i++)
-            bounds[i] = ability_sprite[i].getGlobalBounds();
-
         for (auto& enemy : enemies)
         {
-            for (int i = 0; i < currentProjectileCount; i++)
-            {
-                if (canDamage[i] && enemy.getGlobalBounds().intersects(bounds[i]))
-                {
-                    enemy.takeDamage(damage, 1);
-                    enemy.CanTakeDamage[1] = true;
-                    enemy.enemy_sprite.move(direction * 50.f);
-                    canDamage[i] = false;
-                }
-            }
+            enemy.CanTakeDamage[1] = true;
         }
     }
 
-    void deactivate()
+    void draw(RenderWindow& window)
     {
-        active = false;
-        targetAcquired = false;
-        // Сброс возможности урона для новых атак
-        for (int i = 0; i < currentProjectileCount; i++)
-            canDamage[i] = true;
+        for (int i = 0; i < numProjectiles; ++i)
+        {
+            if (isActive[i])
+                window.draw(projectiles[i]);
+        }
     }
 
-    vector<Sprite> getSprites() const { return ability_sprite; }
-    bool isActive() const { return active; }
-
-    ~Ability2() {}
+    void addProjectileCount(int count)
+    {
+        numProjectiles += count;
+        if (numProjectiles > 15) // пожалуй 15 лучше не использовать. Глухота обеспечена
+            numProjectiles = 15;
+    }
 
     void setUpgradeLevel(int level)
     {
-        if (level > 6)
-            level = 6;
-
+        if (level > 6) level = 6;
         Level = level;
 
         switch (Level)
@@ -561,20 +545,28 @@ public:
         case 2:
             damage += 5;
             speed += 5;
+            addProjectileCount(1);
+            break;
+        case 3:
+            addProjectileCount(2);
             break;
         case 4:
             damage += 5;
             speed += 5;
             break;
         case 5:
-            damage += 5;
-            speed += 5;
+            addProjectileCount(2);
             break;
-        default:
+        case 6:
+            //damage += 10;
+            DamageLimit += 2;
             break;
         }
     }
+
+    ~Ability2() {}
 };
+
 
 
 class Ability3
@@ -701,7 +693,7 @@ public:
 
                 if (i > 3)
                 {
-                    ability_sprites[i].setPosition(heroSprite.getPosition().x + 24 + offsetX/2, heroSprite.getPosition().y + 29 + offsetY/2);
+                    ability_sprites[i].setPosition(heroSprite.getPosition().x + 24 + offsetX/1.5, heroSprite.getPosition().y + 29 + offsetY/1.5);
                     ability_sprites[i].setRotation(angle + 90.f);
                 }
                 else
@@ -772,17 +764,20 @@ public:
             radius += 25;
             damage += 5;
             numProjectiles += 1;
+            duration += 1;
             break;
         case 3:
             rotationSpeed += 20;
             radius += 25;
             damage += 5;
             numProjectiles += 1;
+            cooldown -= 1;
             break;
         case 4:
             rotationSpeed += 20;
             //damage += 5;
             numProjectiles += 1;
+            cooldown -= 1;
             break;
         case 5:
             for (int i = 0; i < MAXnumProjectiles; ++i)
@@ -792,6 +787,7 @@ public:
             break;
         case 6:
             numProjectiles = 8;
+            duration += 1;
             break;
         }
     }

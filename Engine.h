@@ -1062,7 +1062,7 @@ int GameStart()
 					}
 					if (Hero.HaveAbilities[1])
 					{
-						ability2.attack(Hero.hero_sprite);
+						ability2.update(Hero.hero_sprite, enemies);
 						//AbilitiesCooldown[1].restart();
 					}
 					if (Hero.HaveAbilities[2])
@@ -1170,10 +1170,10 @@ int GameStart()
 
 			view.reset(FloatRect(positionScreen.x, positionScreen.y, dimensionScreenX, dimensionScreenY));
 
-			if (!gamePause || !UpgradePause)
+			if (!gamePause)
 			{
 				ability1.update(window, /*Ability1clock*/ enemies);
-				ability2.update(window, /*Ability1clock*/ enemies);
+				//ability2.update(window, /*Ability1clock*/ enemies);
 			}
 
 			//window.clear();
@@ -1193,12 +1193,9 @@ int GameStart()
 				if (ability1.Level == 6)
 					window.draw(ability1.getSprite2());
 			}
-			if (ability2.isActive() && Hero.HaveAbilities[1])
+			if (Hero.HaveAbilities[1] && !enemies.empty())
 			{
-				for (int i = 0; i < ability2.currentProjectileCount; i++)
-				{
-					window.draw(ability2.ability_sprite[i]);
-				}
+				ability2.draw(window);
 			}
 			if (enemies.size() != 0 && Hero.HaveAbilities[2])
 				ability3.draw(window);
@@ -1270,11 +1267,7 @@ int GameStart()
 			//		Ability1Update.ButtonUpdate(window, AbilityUpgrade, event);
 			//	}
 			//}
-			if (gamePause == true && Hero.UpgradePoint != 0)
-			{
-
-			}
-			if (gamePause == true && Hero.UpgradePoint == 0)
+			if (gamePause)
 			{
 				/*rect.setTexture(texture);*/
 				//Pause.setCoords((dimensionScreenX / 2) - (Pause.getWidth() / 2), (dimensionScreenY / 2) - (Pause.getHeight() / 2));
