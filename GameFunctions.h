@@ -404,10 +404,8 @@ class Ability2 // выстрел в ближайшего врага
 {
 private:
     Texture ability_texture;
-    Sprite ability_sprite;
     Music AttackSound;
     Clock AttackClock;
-    //Clock internalClock; // <--- Новый таймер
 
     float cooldown = 1.f; // кулдаун между выстрелами
     float speed = 25.f;   // пикселей в секунду
@@ -420,16 +418,35 @@ private:
     float range = 2000.f;
 
     bool targetAcquired = false;
+    vector<bool> canDamage;
+
+    
 
 public:
     int Level = 1;
+    vector<Sprite> ability_sprite;
+    int currentProjectileCount = 6; // текущее число снарядов (макс. 6)
     Ability2(int Damage, const string& Directory)
     {
         AttackSound.openFromFile("data/music/Attack2.mp3");
         damage = Damage;
         ability_texture.loadFromFile(Directory);
-        ability_sprite.setTexture(ability_texture);
-        ability_sprite.setOrigin(ability_texture.getSize().x / 2.f, ability_texture.getSize().y / 2.f);
+        setProjectileCount(currentProjectileCount);
+    }
+
+    void setProjectileCount(int count)
+    {
+        if (count < 1) count = 1;
+        if (count > 6) count = 6;
+        currentProjectileCount = count;
+        ability_sprite.resize(currentProjectileCount);
+        canDamage.resize(currentProjectileCount, true);
+
+        for (int i = 0; i < currentProjectileCount; i++)
+        {
+            ability_sprite[i].setTexture(ability_texture);
+            ability_sprite[i].setOrigin(ability_texture.getSize().x / 2.f, ability_texture.getSize().y / 2.f);
+        }
     }
 
     void attack(const Sprite& heroSprite)
@@ -441,20 +458,20 @@ public:
             return;
 
         AttackSound.play();
-        ability_sprite.setPosition(heroSprite.getPosition().x + 24, heroSprite.getPosition().y + 29);
-        startPosition = ability_sprite.getPosition();
+
+        for (int i = 0; i < currentProjectileCount; i++)
+            ability_sprite[i].setPosition(heroSprite.getPosition().x + 24, heroSprite.getPosition().y + 29);
+
+        startPosition = ability_sprite[0].getPosition();
 
         active = true;
         targetAcquired = false;
         AttackClock.restart();
-        //internalClock.restart(); // сброс таймера движения
     }
 
     void update(RenderWindow& window, vector<Enemy>& enemies)
     {
         if (!active) return;
-
-        // Обновляем deltaTime
 
         // Определение цели
         if (!targetAcquired)
@@ -479,52 +496,86 @@ public:
                 direction /= length; // нормализация
 
             float angle = atan2(direction.y, direction.x) * 180.f / 3.14159265f;
-            ability_sprite.setRotation(angle);
+            for (int i = 0; i < currentProjectileCount; i++)
+                ability_sprite[i].setRotation(angle);
+
             targetAcquired = true;
         }
 
-        // Движение с учетом времени
-        ability_sprite.move(direction * speed);
+        // Движение
+        for (int i = 0; i < currentProjectileCount; i++)
+            ability_sprite[i].move(direction * speed);
 
-        float traveled = sqrt(pow(ability_sprite.getPosition().x - startPosition.x, 2) +
-            pow(ability_sprite.getPosition().y - startPosition.y, 2));
+        float traveled = sqrt(pow(ability_sprite[0].getPosition().x - startPosition.x, 2) +
+            pow(ability_sprite[0].getPosition().y - startPosition.y, 2));
 
         if (traveled > range)
         {
-            deactivate(enemies);
+            deactivate();
             return;
         }
 
         // Столкновение
-        FloatRect bounds = ability_sprite.getGlobalBounds();
+        vector<FloatRect> bounds(currentProjectileCount);
+        for (int i = 0; i < currentProjectileCount; i++)
+            bounds[i] = ability_sprite[i].getGlobalBounds();
+
         for (auto& enemy : enemies)
         {
-            if (enemy.getGlobalBounds().intersects(bounds))
+            for (int i = 0; i < currentProjectileCount; i++)
             {
-                enemy.takeDamage(damage, 1);
-                enemy.CanTakeDamage[1] = true;
-                enemy.enemy_sprite.move(direction * 50.f);
-                deactivate(enemies);
-                break;
+                if (canDamage[i] && enemy.getGlobalBounds().intersects(bounds[i]))
+                {
+                    enemy.takeDamage(damage, 1);
+                    enemy.CanTakeDamage[1] = true;
+                    enemy.enemy_sprite.move(direction * 50.f);
+                    canDamage[i] = false;
+                }
             }
         }
     }
 
-    void deactivate(vector<Enemy>& enemies)
+    void deactivate()
     {
         active = false;
         targetAcquired = false;
-        for (auto& enemy : enemies)
-        {
-            enemy.CanTakeDamage[1] = true;
-        }
+        // Сброс возможности урона для новых атак
+        for (int i = 0; i < currentProjectileCount; i++)
+            canDamage[i] = true;
     }
 
-    Sprite getSprite() const { return ability_sprite; }
+    vector<Sprite> getSprites() const { return ability_sprite; }
     bool isActive() const { return active; }
 
     ~Ability2() {}
+
+    void setUpgradeLevel(int level)
+    {
+        if (level > 6)
+            level = 6;
+
+        Level = level;
+
+        switch (Level)
+        {
+        case 2:
+            damage += 5;
+            speed += 5;
+            break;
+        case 4:
+            damage += 5;
+            speed += 5;
+            break;
+        case 5:
+            damage += 5;
+            speed += 5;
+            break;
+        default:
+            break;
+        }
+    }
 };
+
 
 class Ability3
 {
@@ -532,7 +583,7 @@ private:
     Texture ability_texture;
     Sprite ability_sprites[8];
 
-    int damage = 25;
+    int damage = 15;
 
     bool active = false;
     float cooldown;
@@ -541,8 +592,8 @@ private:
     int MAXnumProjectiles = 8;
     int numProjectiles = 1;
 
-    float radius = 250.f;
-    float rotationSpeed = 100.f; // градусов в секунду
+    float radius = 170.f;
+    float rotationSpeed = 80.f; // градусов в секунду
     float currentAngle = 0.f;
 
     Clock clock;
@@ -622,15 +673,42 @@ public:
 
             for (int i = 0; i < numProjectiles; i++)
             {
-                float angle = currentAngle + (360.f / numProjectiles) * i;
+                float angle = 1;
+                if (numProjectiles <= 4)
+                {
+                    angle = currentAngle + (360.f / numProjectiles) * i;
+                }
+                else
+                {
+                    // 0..3 — внешний круг, равномерно
+                    // 4..7 — внутренний круг со смещением на 45°
+                    int outerCount = 4;
+                    int innerCount = numProjectiles - outerCount;
+                    if (i < outerCount)
+                    {
+                        angle = currentAngle + (360.f / outerCount) * i;
+                    }
+                    else
+                    {
+                        angle = currentAngle + 45.f + (360.f / innerCount) * (i - outerCount);
+                    }
+                }
+
                 float rad = angle * 3.1415f / 180.f;
 
-                float offsetX = std::cos(rad) * radius;
-                float offsetY = std::sin(rad) * radius;
+                float offsetX = cos(rad) * radius;
+                float offsetY = sin(rad) * radius;
 
-                ability_sprites[i].setPosition(heroSprite.getPosition().x + 24 + offsetX,
-                    heroSprite.getPosition().y + 29 + offsetY);
-                ability_sprites[i].setRotation(angle + 90.f);
+                if (i > 3)
+                {
+                    ability_sprites[i].setPosition(heroSprite.getPosition().x + 24 + offsetX/2, heroSprite.getPosition().y + 29 + offsetY/2);
+                    ability_sprites[i].setRotation(angle + 90.f);
+                }
+                else
+                {
+                    ability_sprites[i].setPosition(heroSprite.getPosition().x + 24 + offsetX, heroSprite.getPosition().y + 29 + offsetY);
+                    ability_sprites[i].setRotation(angle + 90.f);
+                }
             }
 
             for (auto& enemy : enemies)
@@ -680,7 +758,43 @@ public:
             window.draw(ability_sprites[i]);
         }
     }
+    void setUpgradeLevel(int level)
+    {
+        if (level > 6)
+            level = 6;
 
+        Level = level;
+
+        switch (Level)
+        {
+        case 2:
+            rotationSpeed += 20;
+            radius += 25;
+            damage += 5;
+            numProjectiles += 1;
+            break;
+        case 3:
+            rotationSpeed += 20;
+            radius += 25;
+            damage += 5;
+            numProjectiles += 1;
+            break;
+        case 4:
+            rotationSpeed += 20;
+            //damage += 5;
+            numProjectiles += 1;
+            break;
+        case 5:
+            for (int i = 0; i < MAXnumProjectiles; ++i)
+            {
+                ability_sprites[i].setScale(70.f / ability_texture.getSize().x, 70.f / ability_texture.getSize().y);
+            }
+            break;
+        case 6:
+            numProjectiles = 8;
+            break;
+        }
+    }
     bool isActive() const { return active; }
     ~Ability3() {}
 };
@@ -778,12 +892,14 @@ private:
     float Y;
     float width;
     float height;
+    Keyboard::Key bindKey;
 
     RectangleShape ColorAnim;
 
 public:
-    UpgradeAbility(int RectSize, int PosX, int PosY, const Texture& Texture)
+    UpgradeAbility(int RectSize, int PosX, int PosY, const Texture& Texture, Keyboard::Key BindKeyboard)
     {
+        bindKey = BindKeyboard;
         UpgradeSprite.setTexture(Texture);
         ScaleX = float(RectSize) / Texture.getSize().x;
         ScaleY = float(RectSize) / Texture.getSize().y / 2;
@@ -804,7 +920,7 @@ public:
         Vector2i MousePos = Mouse::getPosition(window);
         Vector2f worldPos = window.mapPixelToCoords(MousePos);
 
-        if (Mouse::isButtonPressed(sf::Mouse::Left) && UpgradeSprite.getGlobalBounds().contains(worldPos))
+        if ((Mouse::isButtonPressed(sf::Mouse::Left) && UpgradeSprite.getGlobalBounds().contains(worldPos)) || Keyboard::isKeyPressed(bindKey))
             isPressed = true;
         else
             isPressed = false;
@@ -1018,7 +1134,8 @@ public:
         
 
         for (int i = 0; i < 6; ++i) {
-            Upgrades.emplace_back(RectSize, AbilityRects[i].getPosition().x, PosY, UpgradeTexture); // вызывается конструктор с аргументами
+            sf::Keyboard::Key bindKey = static_cast<sf::Keyboard::Key>(sf::Keyboard::Num1 + i);
+            Upgrades.emplace_back(RectSize, AbilityRects[i].getPosition().x, PosY, UpgradeTexture, bindKey); // вызывается конструктор с аргументами
         }
 
     }
@@ -1065,14 +1182,17 @@ public:
                             }
                             case 1:
                             {
+                                ability2.setUpgradeLevel(hero.HaveAbilities[i]);
                                 break;
                             }
                             case 2:
                             {
+                                ability3.setUpgradeLevel(hero.HaveAbilities[i]);
                                 break;
                             }
                             case 3:
                             {
+                                //ability4.setUpgradeLevel(hero.HaveAbilities[i]);
                                 break;
                             }
                             case 4:

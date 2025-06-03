@@ -854,7 +854,7 @@ int GameStart()
 		Ability1 ability1(25, "data/images/Attack1.png");
 		Abilities.UpdateAbilities(Hero.HaveAbilities);
 		Ability2 ability2(25, "data/images/Attack2.png");
-		Ability3 ability3(6, 4, "data/images/Attack3.png", 7);
+		Ability3 ability3(10, 5, "data/images/Attack3.png", 1);
 		Ability4 ability4("data/images/Attack4.psd", 10);
 		//
 		//ÌÅÍŞ ÏĞÎÊÀ×ÊÈ ÍÀÂÛÊÎÂ
@@ -1194,7 +1194,12 @@ int GameStart()
 					window.draw(ability1.getSprite2());
 			}
 			if (ability2.isActive() && Hero.HaveAbilities[1])
-				window.draw(ability2.getSprite());
+			{
+				for (int i = 0; i < ability2.currentProjectileCount; i++)
+				{
+					window.draw(ability2.ability_sprite[i]);
+				}
+			}
 			if (enemies.size() != 0 && Hero.HaveAbilities[2])
 				ability3.draw(window);
 			if (enemies.size() != 0 && Hero.HaveAbilities[3])
