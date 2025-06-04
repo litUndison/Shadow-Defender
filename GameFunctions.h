@@ -147,16 +147,17 @@ public:
 
     }
 
-    void Update(RenderWindow& window, int newPercent = 0) 
+    void Update(RenderWindow& window, Hero& Hero) 
     {
         
-            percent += newPercent;
+            percent = Hero.getEXP();
+            maxEXP = Hero.getRequireEXP();
             Sliderect.setSize(Vector2f(float(percent) * BackGroundrect.getSize().x / maxEXP, 15));
-            if (percent >= maxEXP)
+            /*if (percent >= maxEXP)
             {
                 percent = 0;
                 maxEXP += 25;
-            }
+            }*/
             /*int damage = percent - newPercent;
 
             if (damage > 0)
@@ -190,6 +191,18 @@ public:
         }*/
 
         // Отображаем все элементы на экране
+        //window.draw(BackGroundrect);
+        //window.draw(Sliderect);
+        //if (percent > 0)
+        //{
+        //    window.draw(Sliderect);
+        //    //if (isDamaged)
+        //    //    window.draw(DamageOverlay);  // Отображаем жёлтую полоску повреждений
+        //}
+        //window.draw(HealthFrameSprite);
+    }
+    void justDraw(RenderWindow& window)
+    {
         window.draw(BackGroundrect);
         //window.draw(Sliderect);
         if (percent > 0)
@@ -198,9 +211,7 @@ public:
             //if (isDamaged)
             //    window.draw(DamageOverlay);  // Отображаем жёлтую полоску повреждений
         }
-        //window.draw(HealthFrameSprite);
     }
-
     String getPercent() {
         return to_string(percent);
     }
@@ -409,9 +420,9 @@ private:
     Music AttackSound[15];
 
     float cooldown = 1.f; // интервал между выстрелами
-    float speed = 25.f;
+    float speed = 10.f;
     int damage = 10;
-    float range = 2000.f;
+    float range = 1200.f;
 
     Sprite projectiles[15];
     Clock projectileTimers[15];     // таймеры каждого снаряда
@@ -451,6 +462,7 @@ public:
         for (int i = 0; i < numProjectiles; ++i)
         {
             int DamageCounts = 0;
+            int CurrentAttack = -1;
             // Если не активен — запускаем, если пришло время
             if (!isActive[i] && projectileTimers[i].getElapsedTime().asSeconds() >= cooldown)
             {
@@ -472,9 +484,18 @@ public:
                 float len = sqrt(dir.x * dir.x + dir.y * dir.y);
                 if (len != 0) dir /= len;
 
+                // Добавим случайную погрешность в направлении (+-1–2 градуса)
+                float angleOffset = ((rand() % 5) - 2) * (3.14159265f / 180.f); // от -2 до +2 градуса в радианах
+
+                float baseAngle = atan2(dir.y, dir.x);
+                float finalAngle = baseAngle + angleOffset;
+
+                // Пересчитаем направление с учетом погрешности
+                dir = Vector2f(cos(finalAngle), sin(finalAngle));
+
                 directions[i] = dir;
 
-                float angle = atan2(dir.y, dir.x) * 180.f / 3.14159265f;
+                float angle = finalAngle * 180.f / 3.14159265f;
                 projectiles[i].setRotation(angle);
             }
 
@@ -491,14 +512,16 @@ public:
                 {
                     if (canDamage[i] && enemy.getGlobalBounds().intersects(projectiles[i].getGlobalBounds()))
                     {
-                        if (enemy.CanTakeDamage[i])
+                        if (enemy.CanTakeDamage[1] && (enemy.lastHitByProjectile2 != i || enemy.damageCooldown2.getElapsedTime().asMilliseconds() >= 200))
                         {
                             enemy.takeDamage(damage, 1);
                             enemy.enemy_sprite.move(directions[i] * 50.f);
                             DamageCounts += 1;
+                            enemy.lastHitByProjectile2 = i;
+                            enemy.damageCooldown2.restart();
                         }
                         //canDamage[i] = false;
-                        if(DamageCounts == DamageLimit)
+                        if(DamageCounts == DamageLimit || traveled >= range)
                         {
                             isActive[i] = false;
                             break;
@@ -710,7 +733,7 @@ public:
                     if (enemy.getGlobalBounds().intersects(ability_sprites[i].getGlobalBounds()))
                     {
                         // Только если урон не был от этого же снаряда
-                        if (enemy.lastHitByProjectile != i || enemy.Damage3Cooldown.getElapsedTime().asMilliseconds() >= 300)
+                        if (enemy.lastHitByProjectile3 != i || enemy.Damage3Cooldown.getElapsedTime().asMilliseconds() >= 300)
                         {
                             enemy.takeDamage(damage, 2);
                             enemy.CanTakeDamage[2] = false;
@@ -723,7 +746,7 @@ public:
                             enemy.enemy_sprite.move(pushDirection * 50.f);
 
                             // Сохраняем индекс снаряда, от которого был урон
-                            enemy.lastHitByProjectile = i;
+                            enemy.lastHitByProjectile3 = i;
                             enemy.Damage3Cooldown.restart();
                         }
                     }
@@ -801,7 +824,7 @@ private:
     Texture ability_texture;
     Sprite ability_sprite;
 
-    int damage = 10;
+    int damage = 0;
 
     bool active = true;
     float cooldown;
@@ -816,13 +839,13 @@ private:
 
     Clock DamageCooldown;
     float DamageTime = DamageCooldown.getElapsedTime().asMilliseconds();
-
+    int SlowFactor = 1.5;
 
 public:
     int Level = 1;
     Ability4(const string& texturePath, int Damage)
     {
-        damage = Damage;
+        //damage = Damage;
         ability_texture.loadFromFile(texturePath);
         ability_sprite.setTexture(ability_texture);
         ability_sprite.setOrigin(ability_texture.getSize().x / 2, ability_texture.getSize().y / 2);
@@ -850,21 +873,51 @@ public:
         {
             if (enemy.getGlobalBounds().intersects(ability_sprite.getGlobalBounds()))
             {
-                if (enemy.canTakeDamage())
+                if (enemy.canTakeDamage() && Level == 6)
                 {
                     enemy.CanTakeDamage[3] = true;
                     enemy.takeDamage(damage, 3);
                     enemy.damageCooldown.restart();
-                    enemy.enemy_speed = 1; //уменьшение в два раза. Говно, надо переделывать. Но идея хорошая
+
 
                 }
+                enemy.currentspeed = float(enemy.enemy_speed) / SlowFactor; // на первом лвле уменьшение в полтора раза
 
             }
             else
-                enemy.enemy_speed = 2;
+                enemy.currentspeed = enemy.enemy_speed;
         }
 
 
+    }
+    void setUpgradeLevel(int level)
+    {
+        if (level > 6)
+            level = 6;
+
+        Level = level;
+
+        switch (Level)
+        {
+        case 2:
+            radius += 50;
+            break;
+        case 3:
+            radius += 50;
+            SlowFactor = 2;
+            break;
+        case 4:
+            radius += 50;
+            break;
+        case 5:
+            radius += 50;
+            break;
+        case 6:
+            damage = 10;
+            SlowFactor = 2.5;
+            break;
+        }
+        ability_sprite.setScale(radius * 2 / ability_texture.getSize().x, radius * 2 / ability_texture.getSize().y);
     }
 
     void draw(RenderWindow& window)
@@ -877,6 +930,256 @@ public:
     bool isActive() const { return active; }
     ~Ability4() {}
 };
+class Ability5
+{
+private:
+    
+    int CountOfHP = 2; // количество получаемого хп
+    int CountOfEnemies = 0; // количество убитых врагов
+    int RequireEnemies = 10; // кол-во необходимых
+
+public:
+    int Level = 1;
+    Ability5(int CountOfhp, int requireEnemies)
+    {
+        CountOfHP = CountOfhp;
+        RequireEnemies = requireEnemies;
+    }
+    void update(int KillingEnemy, Hero& hero)
+    {
+        CountOfEnemies += KillingEnemy;
+        if (CountOfEnemies >= RequireEnemies)
+        {
+            hero.health += CountOfHP;
+            CountOfEnemies = 0;
+        }
+    }
+    void setUpgradeLevel(int level)
+    {
+        if (level > 6)
+            level = 6;
+
+        Level = level;
+
+        switch (Level)
+        {
+        case 2:
+            RequireEnemies -= 2;
+            break;
+        case 3:
+            CountOfHP += 1;
+            break;
+        case 4:
+            CountOfHP += 1;
+            break;
+        case 5:
+            RequireEnemies -= 2;
+            break;
+        case 6:
+            RequireEnemies = 5;
+            CountOfHP = 5;
+            break;
+        }
+    }
+
+
+    ~Ability5() {}
+};
+
+//class Ability6
+//{
+//private:
+//
+//    int cooldown;
+//    int duration;
+//    RectangleShape BGrect;
+//    Clock Cooldown;
+//    Clock Duration;
+//
+//    Color targetColor = Color(100, 100, 100, 100);
+//    Color startColor = Color(100,100,100,0);
+//
+//    Texture clockTexture;
+//    Sprite ClockSprite;
+//    RectangleShape MinutesClockRect;
+//    RectangleShape HourClockRect;
+//
+//    bool Active = false;
+//
+//public:
+//    int Level = 1;
+//    Ability6(int cooldown, int duration)
+//    {
+//        BGrect.setSize(Vector2f(1920, 1080));
+//        BGrect.setPosition(0, 0);
+//        BGrect.setFillColor(startColor);
+//
+//        MinutesClockRect.setSize(Vector2f(100,10));
+//        MinutesClockRect.setFillColor(Color(50, 50, 50));
+//        HourClockRect.setSize(Vector2f(50, 10));
+//        HourClockRect.setFillColor(Color(150, 10, 10));
+//
+//        HourClockRect.setOrigin(0, 5);
+//        HourClockRect.setRotation(-90);
+//        MinutesClockRect.setOrigin(0, 5);
+//        MinutesClockRect.setRotation(-90);
+//    }
+//    void update(vector<Enemy>& enemies)
+//    {
+//        if (!Active) return
+//
+//    }
+//    void setUpgradeLevel(int level)
+//    {
+//        if (level > 6)
+//            level = 6;
+//
+//        Level = level;
+//
+//        switch (Level)
+//        {
+//        case 2:
+//            break;
+//        case 3:
+//            break;
+//        case 4:
+//            break;
+//        case 5:
+//            break;
+//        case 6:
+//            break;
+//        }
+//    }
+//
+//
+//    ~Ability6() {}
+//};
+
+class Ability6
+{
+private:
+    int cooldown;
+    int duration;
+
+    RectangleShape BGrect;
+    Clock CooldownTimer;
+    Clock PhaseTimer;
+
+    Color targetColor = Color(100, 100, 120, 70);
+    Color startColor = Color(100, 100, 100, 0);
+
+    enum Phase { Idle, FadingIn, Active, FadingOut };
+    Phase currentPhase = Idle;
+
+
+public:
+    int Level = 1;
+
+    Ability6(int Cooldown, int Duration)
+    {
+        cooldown = Cooldown;
+        duration = Duration;
+
+        BGrect.setSize(Vector2f(1920, 1080));
+        BGrect.setPosition(0, 0);
+        BGrect.setFillColor(startColor);
+    }
+
+    void update(vector<Enemy>& enemies)
+    {
+        float elapsedSinceCooldown = CooldownTimer.getElapsedTime().asSeconds();
+        float phaseTime = PhaseTimer.getElapsedTime().asSeconds();
+
+        switch (currentPhase)
+        {
+        case Idle:
+            if (elapsedSinceCooldown >= cooldown)
+            {
+                currentPhase = FadingIn;
+                PhaseTimer.restart();
+            }
+            break;
+
+        case FadingIn:
+        {
+            float alphaRatio = std::min(1.f, phaseTime / 2.f);
+            Color currentColor = startColor;
+            currentColor.r = static_cast<Uint8>(startColor.r + (targetColor.r - startColor.r) * alphaRatio);
+            currentColor.g = static_cast<Uint8>(startColor.g + (targetColor.g - startColor.g) * alphaRatio);
+            currentColor.b = static_cast<Uint8>(startColor.b + (targetColor.b - startColor.b) * alphaRatio);
+            currentColor.a = static_cast<Uint8>(startColor.a + (targetColor.a - startColor.a) * alphaRatio);
+            BGrect.setFillColor(currentColor);
+
+            if (phaseTime >= 2.f)
+            {
+                for (auto& e : enemies)
+                    e.setGray(true);
+
+                currentPhase = Active;
+                PhaseTimer.restart();
+            }
+            break;
+        }
+
+        case Active:
+            BGrect.setFillColor(targetColor); // полный серый эффект
+            if (phaseTime >= duration)
+            {
+                currentPhase = FadingOut;
+                PhaseTimer.restart();
+            }
+            break;
+
+        case FadingOut:
+        {
+            float alphaRatio = std::min(1.f, phaseTime / 2.f);
+            Color currentColor = targetColor;
+            currentColor.r = static_cast<Uint8>(targetColor.r - (targetColor.r - startColor.r) * alphaRatio);
+            currentColor.g = static_cast<Uint8>(targetColor.g - (targetColor.g - startColor.g) * alphaRatio);
+            currentColor.b = static_cast<Uint8>(targetColor.b - (targetColor.b - startColor.b) * alphaRatio);
+            currentColor.a = static_cast<Uint8>(targetColor.a - (targetColor.a - startColor.a) * alphaRatio);
+            BGrect.setFillColor(currentColor);
+
+            if (phaseTime >= 2.f)
+            {
+                for (auto& e : enemies)
+                    e.setGray(false);
+
+                BGrect.setFillColor(startColor);
+                currentPhase = Idle;
+                CooldownTimer.restart();
+            }
+            break;
+        }
+        }
+    }
+
+    void draw(RenderWindow& window)
+    {
+        if (currentPhase != Idle)
+            window.draw(BGrect);
+    }
+    bool isActive()
+    {
+        if (currentPhase == Active)
+            return true;
+        return false;
+    }
+    void setUpgradeLevel(int level)
+    {
+        if (level > 6)
+            level = 6;
+
+        Level = level;
+
+        // Дополнительная логика по уровням при необходимости
+    }
+
+    ~Ability6() {}
+
+};
+
+
 class UpgradeAbility // будет как в доте, то есть плюсики над навыками
 {
 private:
@@ -1150,7 +1453,7 @@ public:
         }
     }
 
-    void Update(RenderWindow& window/*, bool HaveAbilities[6]*/, Hero& hero, Ability1& ability1, Ability2& ability2, Ability3& ability3, Ability4& ability4) // спорная херня, надо переделать
+    void Update(RenderWindow& window/*, bool HaveAbilities[6]*/, Hero& hero, Ability1& ability1, Ability2& ability2, Ability3& ability3, Ability4& ability4, Ability5& ability5) // спорная херня, надо переделать
     {
         if (hero.UpgradePoint > 0)
         {
@@ -1192,15 +1495,17 @@ public:
                             }
                             case 3:
                             {
-                                //ability4.setUpgradeLevel(hero.HaveAbilities[i]);
+                                ability4.setUpgradeLevel(hero.HaveAbilities[i]);
                                 break;
                             }
                             case 4:
                             {
+                                ability5.setUpgradeLevel(hero.HaveAbilities[i]);
                                 break;
                             }
                             case 5:
                             {
+                                //ability6.setUpgradeLevel(hero.HaveAbilities[i]);
                                 break;
                             }
                             }

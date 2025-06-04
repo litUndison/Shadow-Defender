@@ -783,9 +783,9 @@ int GameStart()
 		Font TimerFont;
 		TimerFont.loadFromFile("data/font/PixelizerBold.ttf");
 		timerText.setFont(TimerFont);
-		timerText.setCharacterSize(60);
-		timerText.setFillColor(Color::White);
-		timerText.setPosition(900, 20);
+		timerText.setCharacterSize(50);
+		timerText.setFillColor(Color(232, 178, 28));
+		timerText.setPosition(1750, 25);
 
 		const float totalTime = 600.0f; // 10 минут
 		float gameTime = 0.f;          // Прошедшее время
@@ -846,16 +846,18 @@ int GameStart()
 		int RotateScale = 0;
 		//
 		/*AbilitiesUI(int PosX, int PosY, int RectSize, int SpaceBetween, string way_path1, string way_path2, string way_path3, string way_path4, string way_path5, string way_path6)*/
-		string AbilitiesWayPath[6] = { "data/images/Weapon1Icon.png", "data/images/Weapon2Icon.psd", "data/images/Attack3.png", "data/images/Weapon4Icon.psd", "data/images/Attack1.png", "data/images/Attack1.png" };
+		string AbilitiesWayPath[6] = { "data/images/Weapon1Icon.png", "data/images/Weapon2Icon.psd", "data/images/Attack3.png", "data/images/Weapon4Icon.psd", "data/images/Weapon5Icon.png", "data/images/Attack1.png" };
 		AbilitiesUI Abilities(50, 920, 70, 10, AbilitiesWayPath, "data/images/WeaponIcon.png");
 		//-----------------------ЧУТЬ-ЧУТЬ ИНТЕРФЕЙСА ИГРЫ(КОНЕЦ)--------------------------
 		// 
 		//СПОСОБНОСТИ
-		Ability1 ability1(25, "data/images/Attack1.png");
+		Ability1 ability1(10, "data/images/Attack1.png");
 		Abilities.UpdateAbilities(Hero.HaveAbilities);
-		Ability2 ability2(25, "data/images/Attack2.png");
+		Ability2 ability2(10, "data/images/Attack2.png");
 		Ability3 ability3(10, 5, "data/images/Attack3.png", 1);
 		Ability4 ability4("data/images/Attack4.psd", 10);
+		Ability5 ability5(2, 10);
+		Ability6 ability6(6, 4);
 		//
 		//МЕНЮ ПРОКАЧКИ НАВЫКОВ
 		//
@@ -878,8 +880,8 @@ int GameStart()
 		vector<Sprite> tiles;
 		grassTexture.setSmooth(true);
 		// Заполняем мир плитками
-		for (int x = 0; x < 10000; x += tileWidth) {
-			for (int y = 0; y < 10000; y += tileHeight) {
+		for (int x = 0; x < 7000; x += tileWidth) {
+			for (int y = 0; y < 7000; y += tileHeight) {
 				Sprite tile(grassTexture);
 				tile.setPosition(x, y);
 				tiles.push_back(tile);
@@ -1039,7 +1041,8 @@ int GameStart()
 							if (enemies[i].DeathAnimation())
 							{
 								Hero.addEXP(enemies[i].getEXP());
-								EXPBar.Update(window, enemies[i].getEXP());
+								EXPBar.Update(window, Hero);
+								ability5.update(1, Hero);
 								enemies.erase(enemies.begin() + i);
 								cout << "EXP: " << Hero.getEXP() << endl;
 								cout << "Level: " << Hero.Level << " Points: " << Hero.UpgradePoint << endl;
@@ -1072,6 +1075,10 @@ int GameStart()
 					if (Hero.HaveAbilities[3])
 					{
 						ability4.update(Hero.hero_sprite, enemies);
+					}
+					if (Hero.HaveAbilities[5])
+					{
+						ability6.update(enemies);
 					}
 					}
 				}
@@ -1187,6 +1194,8 @@ int GameStart()
 			//for (unsigned long int i = 0; i < enemies.size(); ++i) {
 			//	enemies[i].EnemyUpdate(window); // Рисуем каждого врага по индексу
 			//}
+			if (enemies.size() != 0 && Hero.HaveAbilities[3])
+				ability4.draw(window);
 			if (ability1.isActive() && Hero.HaveAbilities[0])
 			{
 				window.draw(ability1.getSprite1());
@@ -1197,10 +1206,10 @@ int GameStart()
 			{
 				ability2.draw(window);
 			}
+			
 			if (enemies.size() != 0 && Hero.HaveAbilities[2])
 				ability3.draw(window);
-			if (enemies.size() != 0 && Hero.HaveAbilities[3])
-				ability4.draw(window);
+			
 			/*for (auto& enemy : enemies)
 			{
 				enemy.EnemyUpdate(window);
@@ -1213,11 +1222,12 @@ int GameStart()
 			//----------------ОТОБРАЖЕНИЕ ИНТЕРФЕЙСА-------------------
 
 			window.setView(uiView); // неподвижная камера для UI
+			ability6.draw(window);
 			window.draw(timerText);
 			//HealthBar.setPosition(50, 50); // позиция фиксированная на экране
 			HealthBar.Update(window, Hero.health);
-			Abilities.Update(window/*, Hero.HaveAbilities*/, Hero, ability1, ability2, ability3, ability4);
-			EXPBar.Update(window);
+			Abilities.Update(window/*, Hero.HaveAbilities*/, Hero, ability1, ability2, ability3, ability4, ability5);
+			EXPBar.justDraw(window);
 			//HealthBar.setPosition(50, 50);
 			if (LoadingRect.getFillColor().a > 0)
 			{

@@ -32,7 +32,11 @@ private:
 	int CountOfEXP = 10;
 
 public:
+	bool isGray = false;
+	Color originalColor;
+
 	int enemy_speed = 2;
+	float currentspeed = enemy_speed;
 	Clock Damage3Cooldown;
 
 	bool canPush = true;
@@ -40,7 +44,9 @@ public:
 	bool CanTakeDamage[6] = { true, true, true, true, true, true };
 	Clock damageCooldown;
 	float cooldownTime = 0.55f;
-	int lastHitByProjectile = -1;
+	int lastHitByProjectile3 = -1;
+	int lastHitByProjectile2 = -1;
+	Clock damageCooldown2;
 	//bool canTakeDamage = true;
 
 	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y)
@@ -58,6 +64,7 @@ public:
 		enemyBounds = enemy_sprite.getGlobalBounds();
 		enemy_sprite.setScale(sf::Vector2f(0.2f, 0.2f));
 		//enemy.setTextureRect(IntRect(45, 0, 48, 58));//выделяем из картинки отрезок. от координат (0,0) до (48,58)
+
 	}
 
 	/*FloatRect enemyBounds = enemy_sprite.getGlobalBounds();*/
@@ -129,13 +136,13 @@ public:
 			{
 				if (enemydif_x < 0)
 				{
-					enemy_sprite.move(-(enemy_speed * (supX / sqrt(supX * supX + supY * supY))), 0);
-					Collision(enemies, enemy_speed * (supX / sqrt(supX * supX + supY * supY)), 0);
+					enemy_sprite.move(-(currentspeed * (supX / sqrt(supX * supX + supY * supY))), 0);
+					Collision(enemies, currentspeed * (supX / sqrt(supX * supX + supY * supY)), 0);
 				}
 				else
 				{
-					enemy_sprite.move(enemy_speed * (supX / sqrt(supX * supX + supY * supY)), 0);
-					Collision(enemies, -(enemy_speed * (supX / sqrt(supX * supX + supY * supY))), 0);
+					enemy_sprite.move(currentspeed * (supX / sqrt(supX * supX + supY * supY)), 0);
+					Collision(enemies, -(currentspeed * (supX / sqrt(supX * supX + supY * supY))), 0);
 				}
 
 			}
@@ -143,12 +150,12 @@ public:
 			{
 				if (enemydif_y < 0)
 				{
-					enemy_sprite.move(0, -(enemy_speed * (supY / sqrt(supX * supX + supY * supY))));
-					Collision(enemies, 0, enemy_speed * (supY / sqrt(supX * supX + supY * supY)));
+					enemy_sprite.move(0, -(currentspeed * (supY / sqrt(supX * supX + supY * supY))));
+					Collision(enemies, 0, currentspeed * (supY / sqrt(supX * supX + supY * supY)));
 				}
 				else
-					enemy_sprite.move(0, enemy_speed * (supY / sqrt(supX * supX + supY * supY)));
-				Collision(enemies, 0, -(enemy_speed * (supY / sqrt(supX * supX + supY * supY))));
+					enemy_sprite.move(0, currentspeed * (supY / sqrt(supX * supX + supY * supY)));
+				Collision(enemies, 0, -(currentspeed * (supY / sqrt(supX * supX + supY * supY))));
 
 			}
 
@@ -157,28 +164,28 @@ public:
 				if (enemydif_x < 0)
 				{
 					if (abs(enemydif_x) < abs(enemydif_y))
-						enemy_sprite.move((enemy_speed * (supX / sqrt(supX * supX + supY * supY))), 0);
+						enemy_sprite.move((currentspeed * (supX / sqrt(supX * supX + supY * supY))), 0);
 					else
-						enemy_sprite.move(enemy_speed, 0);
+						enemy_sprite.move(currentspeed, 0);
 				}
 				else
 					if (abs(enemydif_x) < abs(enemydif_y))
-						enemy_sprite.move(-enemy_speed * (supX / sqrt(supX * supX + supY * supY)), 0);
+						enemy_sprite.move(-currentspeed * (supX / sqrt(supX * supX + supY * supY)), 0);
 					else
-						enemy_sprite.move(-enemy_speed, 0);
+						enemy_sprite.move(-currentspeed, 0);
 
 				if (enemydif_y < 0)
 				{
 					if (abs(enemydif_x) > abs(enemydif_y))
-						enemy_sprite.move(0, (enemy_speed * (supX / sqrt(supX * supX + supY * supY))));
+						enemy_sprite.move(0, (currentspeed * (supX / sqrt(supX * supX + supY * supY))));
 					else
-						enemy_sprite.move(0, enemy_speed);
+						enemy_sprite.move(0, currentspeed);
 				}
 				else
 					if (abs(enemydif_x) > abs(enemydif_y))
-						enemy_sprite.move(0, -enemy_speed * (supX / sqrt(supX * supX + supY * supY)));
+						enemy_sprite.move(0, -currentspeed * (supX / sqrt(supX * supX + supY * supY)));
 					else
-						enemy_sprite.move(0, -enemy_speed);
+						enemy_sprite.move(0, -currentspeed);
 			}
 			enemyBounds = enemy_sprite.getGlobalBounds();
 		}
@@ -208,7 +215,6 @@ public:
 		if (CanTakeDamage[WeaponIndex])
 		{
 			health -= damage;
-
 			// Запускаем анимацию
 			DamageTakenAnimation.restart();
 			isTakingDamage = true;
@@ -311,6 +317,13 @@ public:
 	int getEXP()
 	{
 		return CountOfEXP;
+	}
+	void setGray(bool enable)
+	{
+		if (enable)
+			enemy_sprite.setColor(Color(90, 90, 150)); // тёмно-синий
+		else
+			enemy_sprite.setColor(Color::White); // вернуть обычный цвет
 	}
 	~Enemy()
 	{

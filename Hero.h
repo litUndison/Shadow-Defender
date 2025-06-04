@@ -178,6 +178,10 @@ public:
 	{
 		return CurrentEXP;
 	}
+	int getRequireEXP()
+	{
+		return RequireEXP;
+	}
 	~Hero()
 	{
 	}
