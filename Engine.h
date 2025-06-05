@@ -404,8 +404,8 @@ int GameStart()
 		//---------------------------------------------------------------------
 
 		/*buffer.loadFromFile();*/
-		bool isMenu = true; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
-		bool isIntro = true; // потом вернуть true
+		bool isMenu = false; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
+		bool isIntro = false; // потом вернуть true
 		bool isAnimation[4] = { false, false, false, false }; //mas[0] - анимация "Играть", 1 - анимация "Настройки" и т.д.
 		MainMenu Menu(Main_texture);
 		MainMenu intro(Intro_texture);
@@ -769,8 +769,9 @@ int GameStart()
 		music.stop();
 
 		//--------------------------------ГЛАВНОЕ МЕНЮ (КОНЕЦ)----------------------------
-
-		Hero Hero(200, 200, 150, 0, 0);
+		bool GameOver = false;
+		bool WinnerWinnerChickenDinner = false;
+		Hero Hero(3500, 3500, 100 + UpgradeLevels[0]*25, UpgradeLevels[1]*5, UpgradeLevels[2]*5);
 
 		Music GameMusic1;
 		GameMusic1.openFromFile("data/music/Game1.mp3");
@@ -817,9 +818,51 @@ int GameStart()
 		QuitRect.setPosition((1920 / 2) - 350, 300);
 		QuitRect.setFillColor(Color(100, 100, 100, 255));
 
+		//интерфейс поражения и победы
+		int CurrentScore = 0;
+		int CurrentMoney = 0;
+
+		Button Loose(210, 130, (1920 / 2) - 105, 100, Color(100, 100, 100), font, L"Поражение", 150, Color(200, 0, 0), 0, false, 6);
+		Button LooseText(210, 130, (1920 / 2) - 105, 300, Color(100, 100, 100), font, L"В следующий раз повезёт!", 80, Color(150, 0, 0), 0, false, 6);
+
+		Button Win(210, 130, (1920 / 2) - 105, 100, Color(100, 100, 100), font, L"Победа", 150, Color(200, 0, 0), 0, false, 6);
+		Button WinText(210, 130, (1920 / 2) - 105, 300, Color(100, 100, 100), font, L"Ты выжил! Пока...", 80, Color(150, 0, 0), 0, false, 6);
+
+		Button Score1(210, 130, 500 , 480, Color(100, 100, 100), font, L"Счёт: ", 80, Color(150, 150, 150), 0, false, 6);
+		Text Score2;
+		Score2.setFont(font);
+		Score2.setString("1");
+		Score2.setPosition((1920 / 2), 500);
+		Score2.setCharacterSize(80);
+		Score2.setFillColor(Color(150, 20, 20));
+		Score2.setOutlineThickness(5);
+		Score2.setOutlineColor(Color(50, 50, 50));
+		Text Score3;
+		Score3.setFont(font);
+		Score3.setString(L"рекорд побит!");
+		Score3.setPosition(1300, 500);
+		Score3.setCharacterSize(80);
+		Score3.setFillColor(Color(150, 150, 150));
+		Score3.setOutlineThickness(5);
+		Score3.setOutlineColor(Color(50, 50, 50));
 
 
-		Slider HealthBar(25, 25, "data/images/HealthBar.psd", 100, 150);
+		Button MoneyTaken(210, 130, 500, 630, Color(100, 100, 100), font, L"Золота: ", 80, Color(150, 150, 150), 0, false, 6);
+		Text MoneyTaken2;
+		MoneyTaken2.setFont(font);
+		MoneyTaken2.setString("11111");
+		MoneyTaken2.setPosition((1920 / 2), 650);
+		MoneyTaken2.setCharacterSize(80);
+		MoneyTaken2.setFillColor(Color(150, 20, 20));
+		MoneyTaken2.setOutlineThickness(5);
+		MoneyTaken2.setOutlineColor(Color(50,50,50));
+
+
+		PopUpButton QuitToMenuGameOver(210, 100, (1920 / 2) - 105, 900, Color(100, 100, 100), font, L"Выйти в меню", 85, Color(115, 112, 112), 0, true, 6);
+		//-------------------
+
+
+		Slider HealthBar(25, 25, "data/images/HealthBar.psd", 100, Hero.MAXhealth); //последнее число = хп персонажа
 		EXPSlider EXPBar(0, 1065, 0, 100);
 		//
 		uiView.setSize(dimensionScreenX, dimensionScreenY);
@@ -829,12 +872,12 @@ int GameStart()
 		LoadingRect.setPosition(0, 0);
 		LoadingRect.setFillColor(Color(47, 47, 47, 255));
 
-		Text LoadingText;
-		String loadText[3] = { L"Загрузка.", L"Загрузка..", L"Загрузка..." };
-		LoadingText.setString(loadText[0]);
-		LoadingText.setFont(TimerFont);
-		LoadingText.setCharacterSize(70);
-		LoadingText.setPosition((1920 / 2) - (LoadingText.getGlobalBounds().width / 2), (1080 / 2) - (LoadingText.getGlobalBounds().height / 2));
+		//Text LoadingText;
+		//String loadText[3] = { L"Загрузка.", L"Загрузка..", L"Загрузка..." };
+		//LoadingText.setString(loadText[0]);
+		//LoadingText.setFont(TimerFont);
+		//LoadingText.setCharacterSize(70);
+		//LoadingText.setPosition((1920 / 2) - (LoadingText.getGlobalBounds().width / 2), (1080 / 2) - (LoadingText.getGlobalBounds().height / 2));
 		int TextAnim = 0;
 
 		Texture LoadingTexture;
@@ -857,7 +900,7 @@ int GameStart()
 		Ability3 ability3(10, 5, "data/images/Attack3.png", 1);
 		Ability4 ability4("data/images/Attack4.psd", 10);
 		Ability5 ability5(2, 10);
-		Ability6 ability6(6, 4);
+		Ability6 ability6(60, 5);
 		//
 		//МЕНЮ ПРОКАЧКИ НАВЫКОВ
 		//
@@ -936,8 +979,8 @@ int GameStart()
 
 
 
-		const int worldWidth = 10000;  // мир 10000 пикселей
-		const int worldHeight = 10000;  // мир 10000 пикселей
+		const int worldWidth = 7000;  // мир 10000 пикселей
+		const int worldHeight = 7000;  // мир 10000 пикселей
 
 
 		//музычка
@@ -1011,14 +1054,22 @@ int GameStart()
 					timerText.setString(timeStr);
 					//таймер
 				}
-				/*if (gameTime >= totalTime)
+				if (gameTime >= totalTime)
 				{
 					//сюда потом можно поместить разные триггеры. Например, появленение неизбежной смерти, кхм...
-				}*/
+					WinnerWinnerChickenDinner = true;
+					gamePause = true;
+				}
 				if (gamePause != 1 && Keyboard::isKeyPressed(Keyboard::M))
 				{
 					Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-					Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y);
+					Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero);
+					if (!enemies.empty())
+						if (enemies[0].TimeStop)
+						{
+							enemy.TimeStop = true;
+							enemy.currentspeed = enemies[0].currentspeed;
+						}
 					enemies.emplace_back(enemy);
 					//cout << "Number of enemies: " << enemies.size() << endl;
 					clock1.restart();
@@ -1042,11 +1093,13 @@ int GameStart()
 							{
 								Hero.addEXP(enemies[i].getEXP());
 								EXPBar.Update(window, Hero);
+								CurrentScore += 1;
+								CurrentMoney += enemies[i].GivenMoney;
 								if (Hero.HaveAbilities[4] != 0)
 									ability5.update(1, Hero);
 								enemies.erase(enemies.begin() + i);
-								cout << "EXP: " << Hero.getEXP() << endl;
-								cout << "Level: " << Hero.Level << " Points: " << Hero.UpgradePoint << endl;
+								//cout << "EXP: " << Hero.getEXP() << endl;
+								//cout << "Level: " << Hero.Level << " Points: " << Hero.UpgradePoint << endl;
 							}
 							continue;
 						}
@@ -1077,10 +1130,7 @@ int GameStart()
 					{
 						ability4.update(Hero.hero_sprite, enemies);
 					}
-					if (Hero.HaveAbilities[5])
-					{
-						ability6.update(enemies);
-					}
+					
 					}
 				}
 				else
@@ -1089,6 +1139,10 @@ int GameStart()
 					{
 						AbilitiesCooldown[i].restart();
 					}	//может можно сделать как-то иначе, но это будет уловка для пауз-спаммеров))))
+				}
+				if (Hero.HaveAbilities[5])
+				{
+					ability6.update(enemies, gamePause, Hero);
 				}
 
 				Hero.handleInput(gamePause, deltatime);
@@ -1109,7 +1163,7 @@ int GameStart()
 				AnimationLoad = LoadAnimation.getElapsedTime().asMilliseconds();
 				if (AnimationLoad >= 250)
 				{
-					LoadingText.setString(loadText[TextAnim]);
+					//LoadingText.setString(loadText[TextAnim]);
 					LoadingSprite.setRotation(RotateScale += 90);
 					LoadAnimation.restart();
 					TextAnim++;
@@ -1122,7 +1176,7 @@ int GameStart()
 				{
 					LoadingRect.setFillColor(Color(47, 47, 47, LoadingRect.getFillColor().a - 5));
 					LoadingSprite.setColor(Color(255, 255, 255, LoadingSprite.getColor().a - 5));
-					LoadingText.setFillColor(Color(255, 255, 255, LoadingSprite.getColor().a - 5));
+					//LoadingText.setFillColor(Color(255, 255, 255, LoadingSprite.getColor().a - 5));
 				}
 			}
 			/*window.clear();
@@ -1220,6 +1274,11 @@ int GameStart()
 				enemies[i].EnemyUpdate(window);
 			}
 			Hero.HeroDraw(window);
+			if (Hero.health <= 0)
+			{
+				GameOver = true;
+				gamePause = true;
+			}
 			//----------------ОТОБРАЖЕНИЕ ИНТЕРФЕЙСА-------------------
 
 			window.setView(uiView); // неподвижная камера для UI
@@ -1227,14 +1286,14 @@ int GameStart()
 			window.draw(timerText);
 			//HealthBar.setPosition(50, 50); // позиция фиксированная на экране
 			HealthBar.Update(window, Hero.health);
-			Abilities.Update(window/*, Hero.HaveAbilities*/, Hero, ability1, ability2, ability3, ability4, ability5);
+			Abilities.Update(window/*, Hero.HaveAbilities*/, Hero, ability1, ability2, ability3, ability4, ability5, ability6);
 			EXPBar.justDraw(window);
 			//HealthBar.setPosition(50, 50);
 			if (LoadingRect.getFillColor().a > 0)
 			{
 				window.draw(LoadingRect);
 				window.draw(LoadingSprite);
-				window.draw(LoadingText);
+				//window.draw(LoadingText);
 			}
 			else
 			{
@@ -1283,64 +1342,161 @@ int GameStart()
 				/*rect.setTexture(texture);*/
 				//Pause.setCoords((dimensionScreenX / 2) - (Pause.getWidth() / 2), (dimensionScreenY / 2) - (Pause.getHeight() / 2));
 				window.draw(PauseRect);
-				Pause.ButtonUpdate(window);
-				MusicPauseText.ButtonUpdate(window);
-				MusicPauseText.ButtonUpdate(window);
-				SoundPauseText.ButtonUpdate(window);
-				MusicPauseSlide.ButtonUpdate(window, event, MusicPausePercent, MusicVolume);
-				SoundPauseSlide.ButtonUpdate(window, event, SoundPausePercent, SoundVolume);
-				MusicPausePercent.ButtonUpdate(window);
-				SoundPausePercent.ButtonUpdate(window);
-				QuitToMenu.ButtonUpdate(window);
-				while (window.pollEvent(event))
+				if (!GameOver && !WinnerWinnerChickenDinner)
 				{
-					if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
+					Pause.ButtonUpdate(window);
+					MusicPauseText.ButtonUpdate(window);
+					MusicPauseText.ButtonUpdate(window);
+					SoundPauseText.ButtonUpdate(window);
+					MusicPauseSlide.ButtonUpdate(window, event, MusicPausePercent, MusicVolume);
+					SoundPauseSlide.ButtonUpdate(window, event, SoundPausePercent, SoundVolume);
+					MusicPausePercent.ButtonUpdate(window);
+					SoundPausePercent.ButtonUpdate(window);
+					QuitToMenu.ButtonUpdate(window);
+					while (window.pollEvent(event))
 					{
-						Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
-						if (QuitToMenu.getText().getGlobalBounds().contains(worldPos))
+						if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
 						{
-							QuitWarning = true;
+							Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
+							if (QuitToMenu.getText().getGlobalBounds().contains(worldPos))
+							{
+								QuitWarning = true;
+							}
 						}
-					}
-					if (event.type == Event::Closed)//если событие "закрытие", окно закрывается
-					{
-						save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
-						window.close();
-					}
-				}
-				if (QuitWarning)
-				{
-					window.draw(QuitRect);
-					WarningText.ButtonUpdate(window);
-					WarningText1.ButtonUpdate(window);
-					QuitYes.ButtonUpdate(window);
-					QuitNo.ButtonUpdate(window);
-					if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
-					{
-						Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
-						if (QuitYes.getText().getGlobalBounds().contains(worldPos))
+						if (event.type == Event::Closed)//если событие "закрытие", окно закрывается
 						{
 							save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
-							// сохраняются только базовые значения. 
-							// Значения полученной валюты и счёта будут добавляться в другие переменные и после завершения игры нормальным путём 
-							// (т.е. смерть/победа) оно будет суммироваться со значением для сохранения
-							isMenu = true;
-							isIntro = true;
-							break;
-						}
-						if (QuitNo.getText().getGlobalBounds().contains(worldPos))
-						{
-							QuitWarning = false;
+							window.close();
 						}
 					}
+					if (QuitWarning)
+					{
+						window.draw(QuitRect);
+						WarningText.ButtonUpdate(window);
+						WarningText1.ButtonUpdate(window);
+						QuitYes.ButtonUpdate(window);
+						QuitNo.ButtonUpdate(window);
+						if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
+						{
+							Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
+							if (QuitYes.getText().getGlobalBounds().contains(worldPos))
+							{
+								save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
+								// сохраняются только базовые значения. 
+								// Значения полученной валюты и счёта будут добавляться в другие переменные и после завершения игры нормальным путём 
+								// (т.е. смерть/победа) оно будет суммироваться со значением для сохранения
+								isMenu = true;
+								isIntro = true;
+								break;
+							}
+							if (QuitNo.getText().getGlobalBounds().contains(worldPos))
+							{
+								QuitWarning = false;
+							}
+						}
+					}
+					//MusicSlide.ButtonUpdate(window, event, MusicPercent, MusicVolume);
+					music.setVolume((30.f * (float(MusicVolume) / 100)));
+					GameMusic1.setVolume((30.f * (float(MusicVolume) / 100)));
+					//SoundSlide.ButtonUpdate(window, event, SoundPercent, SoundVolume);
+					/*rect.setTextureRect(IntRect(0, 0, texture.getSize().x, texture.getSize().y));
+					rect.setPosition((positionScreen.x + dimensionScreenX / 2) - (Pause.getWidth() / 2), (positionScreen.y + dimensionScreenY / 2) - (Pause.getHeight() / 2));
+					window.draw(rect);*/
 				}
-				//MusicSlide.ButtonUpdate(window, event, MusicPercent, MusicVolume);
-				music.setVolume((30.f * (float(MusicVolume) / 100)));
-				GameMusic1.setVolume((30.f * (float(MusicVolume) / 100)));
-				//SoundSlide.ButtonUpdate(window, event, SoundPercent, SoundVolume);
-				/*rect.setTextureRect(IntRect(0, 0, texture.getSize().x, texture.getSize().y));
-				rect.setPosition((positionScreen.x + dimensionScreenX / 2) - (Pause.getWidth() / 2), (positionScreen.y + dimensionScreenY / 2) - (Pause.getHeight() / 2));
-				window.draw(rect);*/
+				else if (GameOver)
+				{
+					Loose.ButtonUpdate(window);
+					LooseText.ButtonUpdate(window);
+					if (BestScore < CurrentScore)
+					{
+						BestScore = CurrentScore;
+						Score1.setText(L"Счёт: ");
+						Score2.setString(to_string(CurrentScore));
+					}
+					else
+					{
+						Score1.setText(L"Счёт: ");
+						Score2.setString(to_string(CurrentScore));
+					}
+					MoneyTaken.setText(L"Золота: ");
+					MoneyTaken2.setString(to_string(CurrentMoney));
+					static bool NotWorking = false;
+					if (!NotWorking)
+					{
+						CountOfMoney += CurrentMoney;
+						NotWorking = true;
+					}
+					save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
+
+					Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
+					if (QuitToMenuGameOver.getText().getGlobalBounds().contains(worldPos) && Mouse::isButtonPressed(Mouse::Left))
+					{
+						
+						// сохраняются только базовые значения. 
+						// Значения полученной валюты и счёта будут добавляться в другие переменные и после завершения игры нормальным путём 
+						// (т.е. смерть/победа) оно будет суммироваться со значением для сохранения
+						isMenu = true;
+						isIntro = true;
+						break;
+					}
+					Score1.ButtonUpdate(window);
+					window.draw(Score2);
+					if (BestScore == CurrentScore)
+						window.draw(Score3);
+
+					MoneyTaken.ButtonUpdate(window);
+					window.draw(MoneyTaken2);
+
+					QuitToMenuGameOver.ButtonUpdate(window);
+				}
+				else if (WinnerWinnerChickenDinner)
+				{
+					Win.ButtonUpdate(window);
+					WinText.ButtonUpdate(window);
+					if (BestScore < CurrentScore)
+					{
+						BestScore = CurrentScore;
+						Score1.setText(L"Счёт: ");
+						Score2.setString(to_string(CurrentScore));
+					}
+					else
+					{
+						Score1.setText(L"Счёт: ");
+						Score2.setString(to_string(CurrentScore));
+					}
+					MoneyTaken.setText(L"Золота: ");
+					MoneyTaken2.setString(to_string(CurrentMoney));
+					static bool NotWorking = false;
+					if (!NotWorking)
+					{
+						CountOfMoney += CurrentMoney;
+						NotWorking = true;
+					}
+					save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
+
+					Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
+					if (QuitToMenuGameOver.getText().getGlobalBounds().contains(worldPos) && Mouse::isButtonPressed(Mouse::Left))
+					{
+
+						// сохраняются только базовые значения. 
+						// Значения полученной валюты и счёта будут добавляться в другие переменные и после завершения игры нормальным путём 
+						// (т.е. смерть/победа) оно будет суммироваться со значением для сохранения
+						isMenu = true;
+						isIntro = true;
+						break;
+					}
+					Score1.ButtonUpdate(window);
+					window.draw(Score2);
+					if (BestScore == CurrentScore)
+						window.draw(Score3);
+
+					MoneyTaken.ButtonUpdate(window);
+					window.draw(MoneyTaken2);
+
+					QuitToMenuGameOver.ButtonUpdate(window);
+				}
+				/*Button Score(210, 130, (1920 / 2) - 105, 500, Color(100, 100, 100), font, L"Счёт: ", 80, Color(100, 0, 0), 0, false, 6);
+				Button MoneyTaken(210, 130, (1920 / 2) - 105, 650, Color(100, 100, 100), font, L"Получено золота: ", 80, Color(100, 0, 0), 0, false, 6);*/
 			}
 			window.display();
 

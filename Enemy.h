@@ -28,7 +28,7 @@ private:
 	float DeathScale = 1;
 	Color baseColor = Color::White;
 	int rotate = 1; // 1 - налево, 2 - направо
-
+	int HeroDamageBoost = 0;
 	int CountOfEXP = 10;
 
 public:
@@ -49,10 +49,12 @@ public:
 	Clock damageCooldown2;
 
 	bool TimeStop = false;
+	int GivenMoney = 1;
 	//bool canTakeDamage = true;
 
-	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y)
+	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y, Hero& hero)
 	{
+		HeroDamageBoost = hero.damageBoost;
 		//damage_texture.loadFromFile(way_path);
 		damage_sprite.setTexture(damage_texture);
 		damage_sprite.setScale(Vector2f(0.2f, 0.2f));
@@ -66,6 +68,7 @@ public:
 		enemyBounds = enemy_sprite.getGlobalBounds();
 		enemy_sprite.setScale(sf::Vector2f(0.2f, 0.2f));
 		//enemy.setTextureRect(IntRect(45, 0, 48, 58));//выделяем из картинки отрезок. от координат (0,0) до (48,58)
+		enemy_sprite.setTextureRect(IntRect(0, 0, 205, 360));
 
 	}
 
@@ -108,6 +111,7 @@ public:
 
 	void HeroFollow(int gamePause, FloatRect& inheroBounds, Sprite& hero, float deltatime, vector<Enemy>& enemies)
 	{
+
 		if (gamePause != true)
 		{
 			int enemydif_x = (hero.getPosition().x) - (enemy_sprite.getPosition().x);
@@ -202,7 +206,7 @@ public:
 			FloatRect heroBounds1 = Hero.heroBounds;
 			if (heroBounds1.intersects(enemyBounds) && damageClock.getElapsedTime().asSeconds() >= damageInterval)
 			{
-				Hero.health -= damage; // Уменьшаем здоровье
+				Hero.health -= damage * (1.f - float(Hero.armor) / 100); // Уменьшаем здоровье
 				damageClock.restart(); // Сбрасываем таймер
 				/*damagetaken.play();*/
 			}
@@ -218,7 +222,7 @@ public:
 	{
 		if (CanTakeDamage[WeaponIndex])
 		{
-			health -= damage;
+			health -= damage * (1.f + float(HeroDamageBoost)/100);
 			// Запускаем анимацию
 			DamageTakenAnimation.restart();
 			isTakingDamage = true;

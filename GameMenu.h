@@ -103,11 +103,12 @@ public:
 	{
 		return rect.getLocalBounds().height;
 	}
-	void setText(string Text)
+	void setText(String Text)
 	{
 		text.setString(Text);
 
 	}
+
 	RectangleShape getRect()
 	{
 		return rect;

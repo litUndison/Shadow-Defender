@@ -579,7 +579,7 @@ public:
             speed += 5;
             break;
         case 5:
-            addProjectileCount(10);
+            addProjectileCount(2);
             break;
         case 6:
             //damage += 10;
@@ -1064,6 +1064,10 @@ class Ability6
 private:
     int cooldown;
     int duration;
+    float accumulatedCooldownTime = 0.f;
+    float accumulatedPhaseTime = 0.f;
+
+
 
     RectangleShape BGrect;
     Clock CooldownTimer;
@@ -1081,8 +1085,11 @@ private:
     Texture ClockTexture;
     Sprite ClockSprite;
 
+    Music Start;
+    Music End;
+
 public:
-    int Level = 1;
+    int Level = 0;
 
     Ability6(int Cooldown, int Duration)
     {
@@ -1093,18 +1100,22 @@ public:
         BGrect.setPosition(0, 0);
         BGrect.setFillColor(startColor);
 
-        MinuteRect.setFillColor(Color(200,200,0));
+        MinuteRect.setFillColor(Color(115, 115, 115));
         MinuteRect.setOutlineThickness(1);
         MinuteRect.setOutlineColor(Color::Black);
         MinuteRect.setSize(Vector2f(38, 4));
         MinuteRect.setOrigin(0, 2);
         MinuteRect.setRotation(-90);
 
-        HourRect.setFillColor(Color(100, 20, 20));
+        HourRect.setFillColor(Color(199, 40, 40));
         HourRect.setSize(Vector2f(30, 4));
         HourRect.setOrigin(0, 2);
+        HourRect.setRotation(-90);
         
-
+        Start.openFromFile("data/music/Weapon6Start.mp3");
+        Start.setVolume(20);
+        End.openFromFile("data/music/Weapon6End.mp3");
+        End.setVolume(20);
         ClockTexture.loadFromFile("data/images/Weapon6Clock.png");
         ClockSprite.setTexture(ClockTexture);
 
@@ -1114,10 +1125,53 @@ public:
         HourRect.setPosition(ClockSprite.getGlobalBounds().width/2 + ClockSprite.getPosition().x, ClockSprite.getGlobalBounds().height / 2 + ClockSprite.getPosition().y);
     }
 
-    void update(vector<Enemy>& enemies)
+
+    // В методе update:
+    void update(vector<Enemy>& enemies, bool gamePause, Hero& hero)
     {
-        float elapsedSinceCooldown = CooldownTimer.getElapsedTime().asSeconds();
-        float phaseTime = PhaseTimer.getElapsedTime().asSeconds();
+        if (hero.HaveAbilities[5] == 0)
+        {
+            CooldownTimer.restart();
+            PhaseTimer.restart();
+            return; // не обновляем состояние, пока пауза активна
+        }
+        if (!gamePause )
+        {
+            float dtCooldown = CooldownTimer.restart().asSeconds();
+            float dtPhase = PhaseTimer.restart().asSeconds();
+
+            if (currentPhase == Idle)
+                accumulatedCooldownTime += dtCooldown;
+            else
+                accumulatedPhaseTime += dtPhase;
+        }
+        else
+        {
+            CooldownTimer.restart();
+            PhaseTimer.restart();
+            return; // не обновляем состояние, пока пауза активна
+        }
+
+        float elapsedSinceCooldown = accumulatedCooldownTime;
+        float phaseTime = accumulatedPhaseTime;
+
+        // Обновление часовой стрелки (перезарядка)
+        if (currentPhase == Idle)
+        {
+            float ratio = elapsedSinceCooldown / static_cast<float>(cooldown);
+            if (ratio > 1.0f)
+                ratio = 1.0f;
+            HourRect.setRotation(-90 + 360.f * ratio);
+        }
+
+        // Обновление минутной стрелки (длительность способности)
+        if (currentPhase == Active)
+        {
+            float ratio = phaseTime / static_cast<float>(duration);
+            if (ratio > 1.0f)
+                ratio = 1.0f;
+            MinuteRect.setRotation(-90 + 360.f * ratio);
+        }
 
         switch (currentPhase)
         {
@@ -1125,62 +1179,75 @@ public:
             if (elapsedSinceCooldown >= cooldown)
             {
                 currentPhase = FadingIn;
+                accumulatedPhaseTime = 0.f;
                 PhaseTimer.restart();
+                Start.play();
             }
             break;
 
         case FadingIn:
         {
-            float alphaRatio = std::min(1.f, phaseTime / 2.f);
+            float alphaRatio = phaseTime / 3.f;
+            if (alphaRatio > 1.0f) alphaRatio = 1.0f;
+
             Color currentColor = startColor;
             currentColor.r = static_cast<int>(startColor.r + (targetColor.r - startColor.r) * alphaRatio);
             currentColor.g = static_cast<int>(startColor.g + (targetColor.g - startColor.g) * alphaRatio);
             currentColor.b = static_cast<int>(startColor.b + (targetColor.b - startColor.b) * alphaRatio);
             currentColor.a = static_cast<int>(startColor.a + (targetColor.a - startColor.a) * alphaRatio);
             BGrect.setFillColor(currentColor);
-            for (auto& enemy : enemies)
-                enemy.currentspeed = enemy.enemy_speed * (1.f - alphaRatio);
 
-            if (phaseTime >= 2.f)
+            for (auto& enemy : enemies)
+            {
+                enemy.currentspeed = enemy.enemy_speed * (1.f - alphaRatio);
+            }
+
+            if (phaseTime >= 3.f)
             {
                 for (auto& enemy : enemies)
                     enemy.TimeStop = true;
 
                 currentPhase = Active;
+                accumulatedPhaseTime = 0.f;
                 PhaseTimer.restart();
             }
             break;
         }
 
         case Active:
-            BGrect.setFillColor(targetColor); // полный серый эффект
+            BGrect.setFillColor(targetColor);
             if (phaseTime >= duration)
             {
                 currentPhase = FadingOut;
+                accumulatedPhaseTime = 0.f;
                 PhaseTimer.restart();
+                End.play();
             }
             break;
 
         case FadingOut:
         {
-            float alphaRatio = std::min(1.f, phaseTime / 2.f);
+            float alphaRatio = phaseTime / 3.f;
+            if (alphaRatio > 1.0f) alphaRatio = 1.0f;
+
             Color currentColor = targetColor;
             currentColor.r = static_cast<int>(targetColor.r - (targetColor.r - startColor.r) * alphaRatio);
             currentColor.g = static_cast<int>(targetColor.g - (targetColor.g - startColor.g) * alphaRatio);
             currentColor.b = static_cast<int>(targetColor.b - (targetColor.b - startColor.b) * alphaRatio);
             currentColor.a = static_cast<int>(targetColor.a - (targetColor.a - startColor.a) * alphaRatio);
             BGrect.setFillColor(currentColor);
+
             for (auto& enemy : enemies)
             {
                 enemy.currentspeed = enemy.enemy_speed * alphaRatio;
                 enemy.TimeStop = false;
             }
 
-            if (phaseTime >= 2.f)
+            if (phaseTime >= 3.f)
             {
-
                 BGrect.setFillColor(startColor);
                 currentPhase = Idle;
+                accumulatedCooldownTime = 0.f;
                 CooldownTimer.restart();
             }
             break;
@@ -1192,9 +1259,12 @@ public:
     {
         if (currentPhase != Idle)
             window.draw(BGrect);
-        window.draw(ClockSprite);
-        window.draw(MinuteRect);
-        window.draw(HourRect);
+        if (Level > 0)
+        {
+            window.draw(ClockSprite);
+            window.draw(HourRect);
+            window.draw(MinuteRect);
+        }
     }
     bool isActive()
     {
@@ -1206,10 +1276,32 @@ public:
     {
         if (level > 6)
             level = 6;
-
         Level = level;
 
-        
+        // по стандарту кд = 60, длительность - 5
+        switch (Level)
+        {
+        case 2:
+            cooldown -= 10;
+            break;
+        case 3:
+            duration += 1;
+            break;
+        case 4:
+            cooldown -= 10;
+            break;
+        case 5:
+            duration += 1;
+            break;
+        case 6:
+            duration += 1;
+            cooldown -= 5;
+            break;
+        }
+
+        // Сбросить прогресс перезарядки, чтобы стрелка начиналась с начала
+        accumulatedCooldownTime = 0.f;
+        CooldownTimer.restart();
     }
 
     ~Ability6() {}
@@ -1490,7 +1582,7 @@ public:
         }
     }
 
-    void Update(RenderWindow& window/*, bool HaveAbilities[6]*/, Hero& hero, Ability1& ability1, Ability2& ability2, Ability3& ability3, Ability4& ability4, Ability5& ability5) // спорная херня, надо переделать
+    void Update(RenderWindow& window/*, bool HaveAbilities[6]*/, Hero& hero, Ability1& ability1, Ability2& ability2, Ability3& ability3, Ability4& ability4, Ability5& ability5, Ability6& ability6) // спорная херня, надо переделать
     {
         if (hero.UpgradePoint > 0)
         {
@@ -1542,7 +1634,8 @@ public:
                             }
                             case 5:
                             {
-                                //ability6.setUpgradeLevel(hero.HaveAbilities[i]);
+                                ability6.setUpgradeLevel(hero.HaveAbilities[i]);
+                                cout << "Level " << hero.HaveAbilities[i] << endl;
                                 break;
                             }
                             }
