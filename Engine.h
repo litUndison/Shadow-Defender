@@ -404,8 +404,8 @@ int GameStart()
 		//---------------------------------------------------------------------
 
 		/*buffer.loadFromFile();*/
-		bool isMenu = false; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
-		bool isIntro = false; // потом вернуть true
+		bool isMenu = true; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
+		bool isIntro = true; // потом вернуть true
 		bool isAnimation[4] = { false, false, false, false }; //mas[0] - анимация "Играть", 1 - анимация "Настройки" и т.д.
 		MainMenu Menu(Main_texture);
 		MainMenu intro(Intro_texture);
@@ -1042,7 +1042,8 @@ int GameStart()
 							{
 								Hero.addEXP(enemies[i].getEXP());
 								EXPBar.Update(window, Hero);
-								ability5.update(1, Hero);
+								if (Hero.HaveAbilities[4] != 0)
+									ability5.update(1, Hero);
 								enemies.erase(enemies.begin() + i);
 								cout << "EXP: " << Hero.getEXP() << endl;
 								cout << "Level: " << Hero.Level << " Points: " << Hero.UpgradePoint << endl;

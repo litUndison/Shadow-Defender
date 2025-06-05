@@ -521,11 +521,12 @@ public:
                             enemy.damageCooldown2.restart();
                         }
                         //canDamage[i] = false;
-                        if(DamageCounts == DamageLimit || traveled >= range)
-                        {
-                            isActive[i] = false;
-                            break;
-                        }
+                        
+                    }
+                    if (DamageCounts == DamageLimit || traveled >= range)
+                    {
+                        isActive[i] = false;
+                        break;
                     }
                 }
 
@@ -578,7 +579,7 @@ public:
             speed += 5;
             break;
         case 5:
-            addProjectileCount(2);
+            addProjectileCount(10);
             break;
         case 6:
             //damage += 10;
@@ -950,7 +951,10 @@ public:
         CountOfEnemies += KillingEnemy;
         if (CountOfEnemies >= RequireEnemies)
         {
-            hero.health += CountOfHP;
+            if (hero.health < hero.MAXhealth)
+                hero.health += CountOfHP;
+            if (hero.health >= hero.MAXhealth)
+                hero.health = hero.MAXhealth;
             CountOfEnemies = 0;
         }
     }
@@ -1071,6 +1075,11 @@ private:
     enum Phase { Idle, FadingIn, Active, FadingOut };
     Phase currentPhase = Idle;
 
+    RectangleShape MinuteRect;
+    RectangleShape HourRect;
+
+    Texture ClockTexture;
+    Sprite ClockSprite;
 
 public:
     int Level = 1;
@@ -1083,6 +1092,26 @@ public:
         BGrect.setSize(Vector2f(1920, 1080));
         BGrect.setPosition(0, 0);
         BGrect.setFillColor(startColor);
+
+        MinuteRect.setFillColor(Color(200,200,0));
+        MinuteRect.setOutlineThickness(1);
+        MinuteRect.setOutlineColor(Color::Black);
+        MinuteRect.setSize(Vector2f(38, 4));
+        MinuteRect.setOrigin(0, 2);
+        MinuteRect.setRotation(-90);
+
+        HourRect.setFillColor(Color(100, 20, 20));
+        HourRect.setSize(Vector2f(30, 4));
+        HourRect.setOrigin(0, 2);
+        
+
+        ClockTexture.loadFromFile("data/images/Weapon6Clock.png");
+        ClockSprite.setTexture(ClockTexture);
+
+        ClockSprite.setScale(100.f/ ClockTexture.getSize().x, 100.f / ClockTexture.getSize().x);
+        ClockSprite.setPosition(1750, 910);
+        MinuteRect.setPosition(ClockSprite.getGlobalBounds().width/2 + ClockSprite.getPosition().x, ClockSprite.getGlobalBounds().height / 2 + ClockSprite.getPosition().y);
+        HourRect.setPosition(ClockSprite.getGlobalBounds().width/2 + ClockSprite.getPosition().x, ClockSprite.getGlobalBounds().height / 2 + ClockSprite.getPosition().y);
     }
 
     void update(vector<Enemy>& enemies)
@@ -1104,16 +1133,18 @@ public:
         {
             float alphaRatio = std::min(1.f, phaseTime / 2.f);
             Color currentColor = startColor;
-            currentColor.r = static_cast<Uint8>(startColor.r + (targetColor.r - startColor.r) * alphaRatio);
-            currentColor.g = static_cast<Uint8>(startColor.g + (targetColor.g - startColor.g) * alphaRatio);
-            currentColor.b = static_cast<Uint8>(startColor.b + (targetColor.b - startColor.b) * alphaRatio);
-            currentColor.a = static_cast<Uint8>(startColor.a + (targetColor.a - startColor.a) * alphaRatio);
+            currentColor.r = static_cast<int>(startColor.r + (targetColor.r - startColor.r) * alphaRatio);
+            currentColor.g = static_cast<int>(startColor.g + (targetColor.g - startColor.g) * alphaRatio);
+            currentColor.b = static_cast<int>(startColor.b + (targetColor.b - startColor.b) * alphaRatio);
+            currentColor.a = static_cast<int>(startColor.a + (targetColor.a - startColor.a) * alphaRatio);
             BGrect.setFillColor(currentColor);
+            for (auto& enemy : enemies)
+                enemy.currentspeed = enemy.enemy_speed * (1.f - alphaRatio);
 
             if (phaseTime >= 2.f)
             {
-                for (auto& e : enemies)
-                    e.setGray(true);
+                for (auto& enemy : enemies)
+                    enemy.TimeStop = true;
 
                 currentPhase = Active;
                 PhaseTimer.restart();
@@ -1134,16 +1165,19 @@ public:
         {
             float alphaRatio = std::min(1.f, phaseTime / 2.f);
             Color currentColor = targetColor;
-            currentColor.r = static_cast<Uint8>(targetColor.r - (targetColor.r - startColor.r) * alphaRatio);
-            currentColor.g = static_cast<Uint8>(targetColor.g - (targetColor.g - startColor.g) * alphaRatio);
-            currentColor.b = static_cast<Uint8>(targetColor.b - (targetColor.b - startColor.b) * alphaRatio);
-            currentColor.a = static_cast<Uint8>(targetColor.a - (targetColor.a - startColor.a) * alphaRatio);
+            currentColor.r = static_cast<int>(targetColor.r - (targetColor.r - startColor.r) * alphaRatio);
+            currentColor.g = static_cast<int>(targetColor.g - (targetColor.g - startColor.g) * alphaRatio);
+            currentColor.b = static_cast<int>(targetColor.b - (targetColor.b - startColor.b) * alphaRatio);
+            currentColor.a = static_cast<int>(targetColor.a - (targetColor.a - startColor.a) * alphaRatio);
             BGrect.setFillColor(currentColor);
+            for (auto& enemy : enemies)
+            {
+                enemy.currentspeed = enemy.enemy_speed * alphaRatio;
+                enemy.TimeStop = false;
+            }
 
             if (phaseTime >= 2.f)
             {
-                for (auto& e : enemies)
-                    e.setGray(false);
 
                 BGrect.setFillColor(startColor);
                 currentPhase = Idle;
@@ -1158,6 +1192,9 @@ public:
     {
         if (currentPhase != Idle)
             window.draw(BGrect);
+        window.draw(ClockSprite);
+        window.draw(MinuteRect);
+        window.draw(HourRect);
     }
     bool isActive()
     {
@@ -1172,7 +1209,7 @@ public:
 
         Level = level;
 
-        // Дополнительная логика по уровням при необходимости
+        
     }
 
     ~Ability6() {}

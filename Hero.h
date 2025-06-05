@@ -23,6 +23,7 @@ public:
 	int UpgradePoint = 6; // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ ÍÀ 1
 	int HaveAbilities[6] = { 0, 0, 0, 0, 0, 0 };
 	int health;
+	int MAXhealth;
 	int damageBoost;
 	int armor;
 	int HeroDirection = 3;
@@ -40,6 +41,7 @@ public:
 
 	Hero(int x, int y, int Health = 100, int DamageBoost = 0, int Armor = 0/*, int WhichAbilityHave = 0*/)
 	{
+		MAXhealth = Health;
 		health = Health;
 		damageBoost = DamageBoost;
 		armor = Armor;

@@ -47,6 +47,8 @@ public:
 	int lastHitByProjectile3 = -1;
 	int lastHitByProjectile2 = -1;
 	Clock damageCooldown2;
+
+	bool TimeStop = false;
 	//bool canTakeDamage = true;
 
 	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y)
@@ -119,7 +121,8 @@ public:
 				if (CurrentFrame > 4) CurrentFrame -= 4;
 				if (CurrentFrame != 0) Xmove = 15 * int(CurrentFrame);
 				else Xmove = 0;
-				enemy_sprite.setTextureRect(IntRect((int(CurrentFrame) * 195) + Xmove, 0, 205, 360));
+				if (!TimeStop)
+					enemy_sprite.setTextureRect(IntRect((int(CurrentFrame) * 195) + Xmove, 0, 205, 360));
 				rotate = 1;
 			}
 			else
@@ -128,7 +131,8 @@ public:
 				if (CurrentFrame > 4) CurrentFrame -= 4;
 				if (CurrentFrame != 0) Xmove = 15 * int(CurrentFrame);
 				else Xmove = 0;
-				enemy_sprite.setTextureRect(IntRect((int(CurrentFrame) * 195) + Xmove, 375, 205, 360));
+				if (!TimeStop)
+					enemy_sprite.setTextureRect(IntRect((int(CurrentFrame) * 195) + Xmove, 375, 205, 360));
 				rotate = 2;
 			}
 
@@ -193,7 +197,7 @@ public:
 	}
 	void DamageDeal(int gamePause, Hero& Hero, const float damageInterval, Clock& damageClock)
 	{
-		if (gamePause != true)
+		if (gamePause != true && TimeStop != true)
 		{
 			FloatRect heroBounds1 = Hero.heroBounds;
 			if (heroBounds1.intersects(enemyBounds) && damageClock.getElapsedTime().asSeconds() >= damageInterval)
