@@ -14,13 +14,13 @@ private:
 	int char_speed = 4;
 	float CurrentFrame = 0;
 	int CurrentEXP = 0; // òåêóùåå êîë-âî îïûòà
-	int RequireEXP = 100; // íåîáõîäèìîå êîë-âî
+	int RequireEXP = 150; // íåîáõîäèìîå êîë-âî
 	
 
 
 public:
 	int Level = 0;
-	int UpgradePoint = 6; // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ ÍÀ 1
+	int UpgradePoint = 1; // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ ÍÀ 1
 	int HaveAbilities[6] = { 0, 0, 0, 0, 0, 0 };
 	int health;
 	int MAXhealth;
@@ -171,7 +171,7 @@ public:
 		if (CurrentEXP >= RequireEXP)
 		{
 			CurrentEXP = 0;
-			RequireEXP += 25;
+			RequireEXP += 50;
 			Level += 1;
 			UpgradePoint += 1;
 		}

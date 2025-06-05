@@ -947,7 +947,7 @@ int GameStart()
 		Clock AbilitiesCooldown[6];
 		Clock clock;
 		Clock TimerClock;
-		Clock clock1;
+		//Clock clock1;
 		Clock clock2;
 		float AbilitiesTime[6];
 		for (int i = 0; i < 6; i++)
@@ -981,6 +981,15 @@ int GameStart()
 
 		const int worldWidth = 7000;  // мир 10000 пикселей
 		const int worldHeight = 7000;  // мир 10000 пикселей
+
+		float spawnInterval = 1.5f;
+		float timeSinceLastSpawn = 0.f;
+		float timeSinceLastIntervalReduction = 0.f;
+		const float intervalReduction = 0.2f;
+		const float minSpawnInterval = 0.1f;
+
+		Clock spawnClock;  
+		Clock intervalClock; 
 
 
 		//музычка
@@ -1060,19 +1069,39 @@ int GameStart()
 					WinnerWinnerChickenDinner = true;
 					gamePause = true;
 				}
-				if (gamePause != 1 && Keyboard::isKeyPressed(Keyboard::M))
+				if (gamePause != 1)
 				{
-					Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-					Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero);
-					if (!enemies.empty())
-						if (enemies[0].TimeStop)
+					float dtSpawn = spawnClock.getElapsedTime().asSeconds();
+					float dtInterval = intervalClock.getElapsedTime().asSeconds();
+
+					if (dtSpawn >= spawnInterval)
+					{
+						Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
+						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero);
+
+						if (!enemies.empty() && enemies[0].TimeStop)
 						{
 							enemy.TimeStop = true;
 							enemy.currentspeed = enemies[0].currentspeed;
 						}
-					enemies.emplace_back(enemy);
-					//cout << "Number of enemies: " << enemies.size() << endl;
-					clock1.restart();
+
+						enemies.emplace_back(enemy);
+						spawnClock.restart();
+					}
+
+					// Каждую минуту (60 секунд) уменьшаем интервал, но не меньше 0.1
+					if (dtInterval >= 60.f)
+					{
+						if (spawnInterval - intervalReduction >= minSpawnInterval)
+						{
+							spawnInterval -= intervalReduction;
+						}
+						else
+						{
+							spawnInterval = minSpawnInterval;
+						}
+						intervalClock.restart();
+					}
 				}
 				if (gamePause != 1 && Keyboard::isKeyPressed(Keyboard::N))
 				{
@@ -1080,7 +1109,7 @@ int GameStart()
 					{
 						enemies.erase(enemies.begin());
 						//cout << "Number of enemies: " << enemies.size() << endl;
-						clock1.restart();
+						//clock1.restart();
 					}
 				}
 				if (gamePause != 1)
