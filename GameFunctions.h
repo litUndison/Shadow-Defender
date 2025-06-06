@@ -1101,7 +1101,7 @@ public:
         BGrect.setFillColor(startColor);
 
         MinuteRect.setFillColor(Color(115, 115, 115));
-        MinuteRect.setOutlineThickness(1);
+        //MinuteRect.setOutlineThickness(1);
         MinuteRect.setOutlineColor(Color::Black);
         MinuteRect.setSize(Vector2f(38, 4));
         MinuteRect.setOrigin(0, 2);
@@ -1116,13 +1116,13 @@ public:
         Start.setVolume(20);
         End.openFromFile("data/music/Weapon6End.mp3");
         End.setVolume(20);
-        ClockTexture.loadFromFile("data/images/Weapon6Clock.png");
+        ClockTexture.loadFromFile("data/images/Weapon6Clock1.psd");
         ClockSprite.setTexture(ClockTexture);
 
         ClockSprite.setScale(100.f/ ClockTexture.getSize().x, 100.f / ClockTexture.getSize().x);
         ClockSprite.setPosition(1750, 910);
-        MinuteRect.setPosition(ClockSprite.getGlobalBounds().width/2 + ClockSprite.getPosition().x, ClockSprite.getGlobalBounds().height / 2 + ClockSprite.getPosition().y);
-        HourRect.setPosition(ClockSprite.getGlobalBounds().width/2 + ClockSprite.getPosition().x, ClockSprite.getGlobalBounds().height / 2 + ClockSprite.getPosition().y);
+        MinuteRect.setPosition(ClockSprite.getGlobalBounds().width/2 + ClockSprite.getPosition().x + 1, ClockSprite.getGlobalBounds().height / 2 + ClockSprite.getPosition().y);
+        HourRect.setPosition(ClockSprite.getGlobalBounds().width/2 + ClockSprite.getPosition().x + 1, ClockSprite.getGlobalBounds().height / 2 + ClockSprite.getPosition().y);
     }
 
 

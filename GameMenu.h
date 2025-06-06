@@ -490,9 +490,9 @@ public:
 		{
 			Sliderect.setFillColor(Color(160, 100, 100));
 		}
-		if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+		if (BackGroundrect.getGlobalBounds().contains(worldPos))
 		{
-			if (BackGroundrect.getGlobalBounds().contains(worldPos))
+			if (Mouse::isButtonPressed(Mouse::Left))
 			{
 				if (worldPos.x <= (BackGroundrect.getPosition().x + 5))
 					Sliderect.setSize(Vector2f(0, BackGroundrect.getSize().y - 10));

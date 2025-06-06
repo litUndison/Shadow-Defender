@@ -156,7 +156,7 @@ int GameStart()
 	HWND consoleWindow = GetConsoleWindow();
 	ShowWindow(consoleWindow, SW_SHOW);
 	setlocale(LC_ALL, "rus");
-	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Default);
+	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Fullscreen);
 	window.setFramerateLimit(60);
 
 	Cursor cursor;
@@ -346,9 +346,9 @@ int GameStart()
 		ability_3.loadFromFile("data/images/Ability3.png");
 		/*(int Recwidth, int Recheight, int PosX, int PosY, const Color& colorshape,
 			const Font& Font, const String& Legend, int TextSize, const Color& colortext, Image& AbilityImg, bool CanClick = true, int Thickness = 0)*/
-		AbilityButton Ability_1(400, 450, 400, 70, Color(80, 80, 80), font, L"Здоровье", 85, Color(200, 0, 0), ability_1, Frame, true, 6, Upgrade1Level, UpgradeMoneyCount[0]);
-		AbilityButton Ability_2(400, 450, 900, 70, Color(80, 80, 80), font, L"Броня", 85, Color(200, 0, 0), ability_2, Frame, true, 6, Upgrade2Level, UpgradeMoneyCount[1]);
-		AbilityButton Ability_3(400, 450, 1400, 70, Color(80, 80, 80), font, L"Атака", 85, Color(200, 0, 0), ability_3, Frame, true, 6, Upgrade3Level, UpgradeMoneyCount[2]);
+		AbilityButton Ability_1(400, 450, 400, 300, Color(80, 80, 80), font, L"Здоровье", 85, Color(200, 0, 0), ability_1, Frame, true, 6, Upgrade1Level, UpgradeMoneyCount[0]);
+		AbilityButton Ability_2(400, 450, 900, 300, Color(80, 80, 80), font, L"Броня", 85, Color(200, 0, 0), ability_2, Frame, true, 6, Upgrade2Level, UpgradeMoneyCount[1]);
+		AbilityButton Ability_3(400, 450, 1400, 300, Color(80, 80, 80), font, L"Атака", 85, Color(200, 0, 0), ability_3, Frame, true, 6, Upgrade3Level, UpgradeMoneyCount[2]);
 		//---------------------------------------------------------------------
 		//-----------------------------КНОПКИ "INFO"---------------------------
 		PopUpMenu Info_Menu(1650, 1080);
@@ -403,9 +403,14 @@ int GameStart()
 		PopUpButton AboutAbility3(1200, 100, 625, 575, Color(100, 100, 100), font, L"Урон: \nувеличение наносимого урона на 5 процентов за уровень (максимум 15)", 60, Color(165, 0, 0), 0, false, 6);
 		//---------------------------------------------------------------------
 
+		//характеристики врагов, которые будут меняться. Возможно надр будет поменять приросты
+		int EnemyHP = 100;
+		int EnemyHPUpgrade = 25;
+		//
+
 		/*buffer.loadFromFile();*/
-		bool isMenu = false; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
-		bool isIntro = false; // потом вернуть true
+		bool isMenu = true; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
+		bool isIntro = true; // потом вернуть true
 		bool isAnimation[4] = { false, false, false, false }; //mas[0] - анимация "Играть", 1 - анимация "Настройки" и т.д.
 		MainMenu Menu(Main_texture);
 		MainMenu intro(Intro_texture);
@@ -772,6 +777,32 @@ int GameStart()
 		bool GameOver = false;
 		bool WinnerWinnerChickenDinner = false;
 		Hero Hero(3500, 3500, 100 + UpgradeLevels[0]*25, UpgradeLevels[1]*5, UpgradeLevels[2]*5);
+		
+		//характеристики врагов, которые будут меняться. Возможно надр будет поменять приросты
+		//int EnemyHP = 100;
+		//int EnemyHPUpgrade = 25;
+		//
+		switch (Difficulty)
+		{
+		case 1:
+		{	
+			EnemyHP = 50;
+			EnemyHPUpgrade = 10;
+			break;
+		}
+		case 2:
+		{
+			EnemyHP = 75;
+			EnemyHPUpgrade = 15;
+			break;
+		}
+		case 3:
+		{
+			EnemyHP = 100;
+			EnemyHPUpgrade = 25;
+			break;
+		}
+		}
 
 		Music GameMusic1;
 		GameMusic1.openFromFile("data/music/Game1.mp3");
@@ -969,6 +1000,8 @@ int GameStart()
 		Event close;
 		Event event;
 
+		//EnemyBoss Boss(enemy_texture, enemy_damage_texture, 3000, 3000, Hero, 1000);
+
 		enemy_texture.loadFromFile("data/images/enemy.psd");
 		enemy_damage_texture.loadFromFile("data/images/DamageAnim.psd");
 		bool StartGame = false;
@@ -1077,7 +1110,7 @@ int GameStart()
 					if (dtSpawn >= spawnInterval)
 					{
 						Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero);
+						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP);
 
 						if (!enemies.empty() && enemies[0].TimeStop)
 						{
@@ -1095,6 +1128,7 @@ int GameStart()
 						if (spawnInterval - intervalReduction >= minSpawnInterval)
 						{
 							spawnInterval -= intervalReduction;
+							EnemyHP += EnemyHPUpgrade;
 						}
 						else
 						{
@@ -1103,15 +1137,15 @@ int GameStart()
 						intervalClock.restart();
 					}
 				}
-				if (gamePause != 1 && Keyboard::isKeyPressed(Keyboard::N))
-				{
-					if (enemies.size() != 0)
-					{
-						enemies.erase(enemies.begin());
-						//cout << "Number of enemies: " << enemies.size() << endl;
-						//clock1.restart();
-					}
-				}
+				//if (gamePause != 1 && Keyboard::isKeyPressed(Keyboard::N))
+				//{
+				//	if (enemies.size() != 0)
+				//	{
+				//		enemies.erase(enemies.begin());
+				//		//cout << "Number of enemies: " << enemies.size() << endl;
+				//		//clock1.restart();
+				//	}
+				//}
 				if (gamePause != 1)
 				{
 					for (int i = 0; i < enemies.size();)
@@ -1175,6 +1209,9 @@ int GameStart()
 				}
 
 				Hero.handleInput(gamePause, deltatime);
+				Hero.updateDamageAnimation();
+				Hero.DeathAnimation();
+				//Boss.HeroFollow(gamePause, Hero.inheroBounds, Hero.hero_sprite, deltatime, enemies);
 				//if (enemies.size() != 0)
 				//{
 				//	for (iter = enemies.begin(); iter != enemies.end(); iter++)
@@ -1293,7 +1330,7 @@ int GameStart()
 			
 			if (enemies.size() != 0 && Hero.HaveAbilities[2])
 				ability3.draw(window);
-			
+
 			/*for (auto& enemy : enemies)
 			{
 				enemy.EnemyUpdate(window);
@@ -1302,6 +1339,7 @@ int GameStart()
 			{
 				enemies[i].EnemyUpdate(window);
 			}
+			//Boss.EnemyUpdate(window);
 			Hero.HeroDraw(window);
 			if (Hero.health <= 0)
 			{
@@ -1382,22 +1420,20 @@ int GameStart()
 					MusicPausePercent.ButtonUpdate(window);
 					SoundPausePercent.ButtonUpdate(window);
 					QuitToMenu.ButtonUpdate(window);
-					while (window.pollEvent(event))
+					if (Mouse::isButtonPressed(Mouse::Left))
 					{
-						if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
+						Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
+						if (QuitToMenu.getText().getGlobalBounds().contains(worldPos))
 						{
-							Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
-							if (QuitToMenu.getText().getGlobalBounds().contains(worldPos))
-							{
-								QuitWarning = true;
-							}
-						}
-						if (event.type == Event::Closed)//если событие "закрытие", окно закрывается
-						{
-							save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
-							window.close();
+							QuitWarning = true;
 						}
 					}
+					if (event.type == Event::Closed)//если событие "закрытие", окно закрывается
+					{
+						save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
+						window.close();
+					}
+					
 					if (QuitWarning)
 					{
 						window.draw(QuitRect);
