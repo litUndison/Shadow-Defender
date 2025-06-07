@@ -31,7 +31,7 @@ private:
 	Color baseColor = Color::White;
 	int rotate = 1; // 1 - налево, 2 - направо
 	int HeroDamageBoost = 0;
-	int CountOfEXP = 10;
+	int CountOfEXP = 20;
 
 public:
 	bool isGray = false;
@@ -54,10 +54,11 @@ public:
 	int GivenMoney = 1;
 	//bool canTakeDamage = true;
 
-	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y, Hero& hero, int MAXHealth)
+	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y, Hero& hero, int MAXHealth, int Damage)
 	{
 		MaxHealth = MAXHealth;
 		Currenthealth = MaxHealth;
+		damage = Damage;
 
 
 		HeroDamageBoost = hero.damageBoost;
@@ -116,6 +117,8 @@ public:
 
 	void HeroFollow(int gamePause, FloatRect& inheroBounds, Sprite& hero, float deltatime, vector<Enemy>& enemies)
 	{
+		if (TimeStop)
+			currentspeed = 0;
 
 		if (gamePause != true)
 		{

@@ -49,8 +49,8 @@ public:
 	{
 		MAXhealth = Health;
 		health = Health;
-		damageBoost = DamageBoost;
-		armor = Armor;
+		damageBoost = DamageBoost*2;
+		armor = Armor*2;
 		//HaveAbilities[WhichAbilityHave] += true;
 
 		hero_image.loadFromFile("data/images/character1.png");

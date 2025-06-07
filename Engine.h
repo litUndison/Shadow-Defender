@@ -483,11 +483,11 @@ int GameStart()
 						save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
 						window.close();
 					}
-					if (event.type == Event::KeyPressed)
-					{
-						if (event.key.code == Keyboard::Escape) // это потом удалить, сделал чтобы выйти в игру вцелом
-							isMenu = false;
-					}
+					//if (event.type == Event::KeyPressed)
+					//{
+					//	if (event.key.code == Keyboard::Escape) // это потом удалить, сделал чтобы выйти в игру вцелом
+					//		isMenu = false;
+					//}
 					if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
 					{
 						Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
@@ -790,6 +790,9 @@ int GameStart()
 		//--------------------------------ГЛАВНОЕ МЕНЮ (КОНЕЦ)----------------------------
 		bool GameOver = false;
 		bool WinnerWinnerChickenDinner = false;
+
+		float spawnInterval = 1.5f;
+		int EnemyDamage = 15;
 		Hero Hero(3500, 3500, 100 + UpgradeLevels[0]*25, UpgradeLevels[1]*5, UpgradeLevels[2]*5);
 		
 		//характеристики врагов, которые будут меняться. Возможно надр будет поменять приросты
@@ -800,18 +803,24 @@ int GameStart()
 		{
 		case 1:
 		{	
+			EnemyDamage = 10;
+			spawnInterval = 2.f;
 			EnemyHP = 50;
 			EnemyHPUpgrade = 10;
 			break;
 		}
 		case 2:
 		{
+			EnemyDamage = 15;
+			spawnInterval = 1.7f;
 			EnemyHP = 75;
 			EnemyHPUpgrade = 15;
 			break;
 		}
 		case 3:
 		{
+			EnemyDamage = 20;
+			spawnInterval = 1.5f;
 			EnemyHP = 100;
 			EnemyHPUpgrade = 25;
 			break;
@@ -1029,7 +1038,7 @@ int GameStart()
 		const int worldWidth = 7000;  // мир 10000 пикселей
 		const int worldHeight = 7000;  // мир 10000 пикселей
 
-		float spawnInterval = 1.5f;
+		
 		float timeSinceLastSpawn = 0.f;
 		float timeSinceLastIntervalReduction = 0.f;
 		const float intervalReduction = 0.2f;
@@ -1124,7 +1133,7 @@ int GameStart()
 					if (dtSpawn >= spawnInterval)
 					{
 						Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP);
+						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage);
 
 						if (!enemies.empty() && enemies[0].TimeStop)
 						{

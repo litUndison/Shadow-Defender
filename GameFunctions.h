@@ -1635,7 +1635,6 @@ public:
                             case 5:
                             {
                                 ability6.setUpgradeLevel(hero.HaveAbilities[i]);
-                                cout << "Level " << hero.HaveAbilities[i] << endl;
                                 break;
                             }
                             }
