@@ -85,7 +85,7 @@ public:
 				hero_sprite.move(-(sqrt(pow(char_speed, 2) / 2)), +(sqrt(pow(char_speed, 2) / 2)));//char_speed скорость героя
 
 				DamageSprite.setTextureRect(IntRect(int(CurrentFrame) * 45, 120, 46, 58));
-				DamageSprite.move(-(sqrt(pow(char_speed, 2) / 2)), +(sqrt(pow(char_speed, 2) / 2)));//char_speed скорость героя
+				DamageSprite.setPosition(hero_sprite.getPosition());
 
 				heroCollision.setPosition(hero_sprite.getPosition().x + 24, hero_sprite.getPosition().y + 29);
 			}
@@ -98,7 +98,7 @@ public:
 				hero_sprite.move(-(sqrt(pow(char_speed, 2) / 2)), -(sqrt(pow(char_speed, 2) / 2)));//char_speed скорость героя
 
 				DamageSprite.setTextureRect(IntRect(int(CurrentFrame) * 45, 120, 46, 58));
-				DamageSprite.move(-(sqrt(pow(char_speed, 2) / 2)), -(sqrt(pow(char_speed, 2) / 2)));//char_speed скорость героя
+				DamageSprite.setPosition(hero_sprite.getPosition());
 
 				heroCollision.setPosition(hero_sprite.getPosition().x + 24, hero_sprite.getPosition().y + 29);
 			}
@@ -111,7 +111,7 @@ public:
 				hero_sprite.move(+(sqrt(pow(char_speed, 2) / 2)), +(sqrt(pow(char_speed, 2) / 2)));//char_speed скорость героя
 
 				DamageSprite.setTextureRect(IntRect(int(CurrentFrame) * 45, 58, 46, 58));
-				DamageSprite.move(+(sqrt(pow(char_speed, 2) / 2)), +(sqrt(pow(char_speed, 2) / 2)));//char_speed скорость героя
+				DamageSprite.setPosition(hero_sprite.getPosition());
 
 				heroCollision.setPosition(hero_sprite.getPosition().x + 24, hero_sprite.getPosition().y + 29);
 			}
@@ -124,7 +124,7 @@ public:
 				hero_sprite.move(+(sqrt(pow(char_speed, 2) / 2)), -(sqrt(pow(char_speed, 2) / 2)));//char_speed скорость героя
 
 				DamageSprite.setTextureRect(IntRect(int(CurrentFrame) * 45, 58, 46, 58));
-				DamageSprite.move(+(sqrt(pow(char_speed, 2) / 2)), -(sqrt(pow(char_speed, 2) / 2)));//char_speed скорость героя
+				DamageSprite.setPosition(hero_sprite.getPosition());
 
 				heroCollision.setPosition(hero_sprite.getPosition().x + 24, hero_sprite.getPosition().y + 29);
 			}
@@ -137,7 +137,7 @@ public:
 				hero_sprite.move(-(char_speed), 0);//char_speed скорость героя
 
 				DamageSprite.setTextureRect(IntRect(int(CurrentFrame) * 45, 120, 46, 58));
-				DamageSprite.move(-(char_speed), 0);//char_speed скорость героя
+				DamageSprite.setPosition(hero_sprite.getPosition());
 
 				heroCollision.setPosition(hero_sprite.getPosition().x + 24, hero_sprite.getPosition().y + 29);
 			}
@@ -150,7 +150,7 @@ public:
 				hero_sprite.move(+(char_speed), 0);
 
 				DamageSprite.setTextureRect(IntRect(int(CurrentFrame) * 45, 58, 46, 58));
-				DamageSprite.move(+(char_speed), 0);
+				DamageSprite.setPosition(hero_sprite.getPosition());
 
 				heroCollision.setPosition(hero_sprite.getPosition().x + 24, hero_sprite.getPosition().y + 29);
 			}
@@ -163,7 +163,7 @@ public:
 				hero_sprite.move(0, -(char_speed));
 
 				DamageSprite.setTextureRect(IntRect(int(CurrentFrame) * 46, 183, 46, 58));
-				DamageSprite.move(0, -(char_speed));
+				DamageSprite.setPosition(hero_sprite.getPosition());
 
 				heroCollision.setPosition(hero_sprite.getPosition().x + 24, hero_sprite.getPosition().y + 29);
 			}
@@ -176,7 +176,7 @@ public:
 				hero_sprite.move(0, +(char_speed));
 
 				DamageSprite.setTextureRect(IntRect(int(CurrentFrame) * 46, 0, 46, 58));
-				DamageSprite.move(0, +(char_speed));
+				DamageSprite.setPosition(hero_sprite.getPosition());
 
 				heroCollision.setPosition(hero_sprite.getPosition().x + 24, hero_sprite.getPosition().y + 29);
 			}

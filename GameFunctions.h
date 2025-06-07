@@ -1199,7 +1199,7 @@ public:
 
             for (auto& enemy : enemies)
             {
-                enemy.currentspeed = enemy.enemy_speed * (1.f - alphaRatio);
+                enemy.currentspeed = float(enemy.enemy_speed) * (1.f - alphaRatio);
             }
 
             if (phaseTime >= 3.f)
@@ -1239,7 +1239,7 @@ public:
 
             for (auto& enemy : enemies)
             {
-                enemy.currentspeed = enemy.enemy_speed * alphaRatio;
+                enemy.currentspeed = float(enemy.enemy_speed) * alphaRatio;
                 enemy.TimeStop = false;
             }
 

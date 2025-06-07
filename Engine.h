@@ -261,7 +261,7 @@ int GameStart()
 		Button Play(130, 70, 100, 350, Color(100, 100, 100), font, L"Играть", 100, Color(139, 0, 0), 0, true, 5);
 		Button Settings(130, 70, 100, 500, Color(100, 100, 100), font, L"Настройки", 100, Color(139, 0, 0), 0, true, 5);
 		Button Upgrade(130, 70, 100, 620, Color(100, 100, 100), font, L"Улучшения", 100, Color(139, 0, 0), 0, true, 5);
-		Button Info(130, 70, 100, 760, Color(100, 100, 100), font, L"Бестиарий", 100, Color(139, 0, 0), 0, true, 5);
+		Button Info(130, 70, 100, 760, Color(100, 100, 100), font, L"Гримуар", 100, Color(139, 0, 0), 0, true, 5);
 		Button Exit(130, 70, 100, 960, Color(100, 100, 100), font, L"Выход", 100, Color(139, 0, 0), 0, true, 5);
 		//---------------------------------------------------------------------
 		Main_texture.loadFromFile("data/images/Intro.png");
@@ -352,7 +352,7 @@ int GameStart()
 		//---------------------------------------------------------------------
 		//-----------------------------КНОПКИ "INFO"---------------------------
 		PopUpMenu Info_Menu(1650, 1080);
-		Texture AbilityIc;
+		/*Texture AbilityIc;
 		AbilityIc.loadFromFile("data/images/AbilityIcon.png");
 		Sprite AbilityIcon1;
 		Sprite AbilityIcon2;
@@ -400,7 +400,16 @@ int GameStart()
 		Ability3Rect.setPosition(400, 550);
 		AbilityIcon3.setPosition(400, 550);
 		AbilitySprite3.setPosition(420, 575);
-		PopUpButton AboutAbility3(1200, 100, 625, 575, Color(100, 100, 100), font, L"Урон: \nувеличение наносимого урона на 5 процентов за уровень (максимум 15)", 60, Color(165, 0, 0), 0, false, 6);
+		PopUpButton AboutAbility3(1200, 100, 625, 575, Color(100, 100, 100), font, L"Урон: \nувеличение наносимого урона на 5 процентов за уровень (максимум 15)", 60, Color(165, 0, 0), 0, false, 6);*/
+
+
+		/*InfoRect(string& way_path, int PosX, int PosY, String Name, String Description)*/
+		InfoRect Ability1Info("data/images/Weapon1Icon.png", 400,100, "Shadow Blade", L"прямой удар перед собой наносящий урон и отталкивающий врагов");
+		InfoRect Ability2Info("data/images/Weapon2Icon.psd", 400,250, "Magic Prism", L"выстрел в случайного врага с его отталкиванием. Недостаточно силён, чтобы пробить его насквозь");
+		InfoRect Ability3Info("data/images/Attack3.png", 400,400, "Holy Crosses", L"Вращающаяся вокруг персонажа атака, наносящая урон и отталкивающая");
+		InfoRect Ability4Info("data/images/Weapon4Icon.psd", 400,550, "Bloody pentagram", L"Пентаграмма, в зоне поражения которой враги замедляются");
+		InfoRect Ability5Info("data/images/Weapon5Icon.png", 400,700, "Soul Stone", L"после убийства нужного количества врагов исцеляет персонажа");
+		InfoRect Ability6Info("data/images/Weapon6Icon.png", 400,850, "Mysterious clock", L"странные часы. Что же они делают? Известно одно: урона от них не видать");
 		//---------------------------------------------------------------------
 
 		//характеристики врагов, которые будут меняться. Возможно надр будет поменять приросты
@@ -410,7 +419,7 @@ int GameStart()
 
 		/*buffer.loadFromFile();*/
 		bool isMenu = true; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
-		bool isIntro = true; // потом вернуть true
+		bool isIntro = false; // потом вернуть true
 		bool isAnimation[4] = { false, false, false, false }; //mas[0] - анимация "Играть", 1 - анимация "Настройки" и т.д.
 		MainMenu Menu(Main_texture);
 		MainMenu intro(Intro_texture);
@@ -738,21 +747,26 @@ int GameStart()
 					BestScoreText.setOutlineColor(Color(0, 0, 0, 0));
 					BestScoreNumber.setOutlineColor(Color(0, 0, 0, 0));
 
-					AboutAbility1.ButtonUpdate(window);
-					AboutAbility2.ButtonUpdate(window);
-					AboutAbility3.ButtonUpdate(window);
+					//AboutAbility1.ButtonUpdate(window);
+					//AboutAbility2.ButtonUpdate(window);
+					//AboutAbility3.ButtonUpdate(window);
+					Ability1Info.Update(window);
+					Ability2Info.Update(window);
+					Ability3Info.Update(window);
+					Ability4Info.Update(window);
+					Ability5Info.Update(window);
+					Ability6Info.Update(window);
+					//window.draw(Ability1Rect);
+					//window.draw(AbilityIcon1);
+					//window.draw(AbilitySprite1);
 
-					window.draw(Ability1Rect);
-					window.draw(AbilityIcon1);
-					window.draw(AbilitySprite1);
-
-					window.draw(Ability2Rect);
+					/*window.draw(Ability2Rect);
 					window.draw(AbilityIcon2);
 					window.draw(AbilitySprite2);
 
 					window.draw(Ability3Rect);
 					window.draw(AbilityIcon3);
-					window.draw(AbilitySprite3);
+					window.draw(AbilitySprite3);*/
 				}
 				if (Play_Menu.MovingLeft && Play_Menu.getPos().x >= 1920 && Settings_Menu.MovingLeft && Settings_Menu.getPos().x >= 1920 && Upgrade_Menu.MovingLeft && Upgrade_Menu.getPos().x >= 1920 && Info_Menu.MovingLeft && Info_Menu.getPos().x >= 1920)
 				{

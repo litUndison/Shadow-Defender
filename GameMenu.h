@@ -766,4 +766,70 @@ public:
 	{
 	}
 };
+
+
+class InfoRect
+{
+private:
+	Texture AbilityTexture;
+	Sprite AbilitySprite;
+
+	Texture IconTexture;
+	Sprite IconSprite;
+
+	RectangleShape AbilityRect;
+	Text AbilityName;
+	Text AbilityDescription;
+	Font font;
+
+public:
+	InfoRect(string way_path, int PosX, int PosY, String Name, String Description)
+	{
+
+		AbilityTexture.loadFromFile(way_path);
+		AbilitySprite.setTexture(AbilityTexture);
+
+		IconTexture.loadFromFile("data/images/AbilityIcon.png");
+		IconSprite.setTexture(IconTexture);
+
+		AbilityRect.setPosition(PosX, PosY);
+		AbilityRect.setSize(Vector2f(120, 120));
+		AbilityRect.setFillColor(Color(70, 70, 70));
+
+		IconSprite.setScale(AbilityRect.getSize().x / IconTexture.getSize().x, AbilityRect.getSize().y / IconTexture.getSize().y);
+		IconSprite.setPosition(PosX, PosY);
+
+		AbilitySprite.setScale(AbilityRect.getSize().x / AbilityTexture.getSize().x, AbilityRect.getSize().y / AbilityTexture.getSize().y);
+		AbilitySprite.setPosition(PosX, PosY);
+		
+		font.loadFromFile("data/font/AmazDooMLeft2.ttf");
+		AbilityName.setString(Name);
+		AbilityName.setCharacterSize(60);
+		AbilityName.setFont(font);
+		AbilityName.setPosition(PosX + AbilityRect.getSize().x + 40, PosY);
+		AbilityName.setFillColor(Color(165, 0, 0));
+		AbilityName.setOutlineThickness(5);
+		AbilityName.setOutlineColor(Color(50, 50, 50));
+
+		AbilityDescription.setString(Description);
+		AbilityDescription.setCharacterSize(40);
+		AbilityDescription.setFont(font);
+		AbilityDescription.setPosition(PosX + AbilityRect.getSize().x + 40, PosY + 80);
+		AbilityDescription.setFillColor(Color(120, 120, 120));
+		AbilityDescription.setOutlineThickness(5);
+		AbilityDescription.setOutlineColor(Color(50, 50, 50));
+
+
+
+	}
+	void Update(RenderWindow& window)
+	{
+		window.draw(AbilityRect);
+		window.draw(AbilitySprite);
+		window.draw(IconSprite);
+		window.draw(AbilityName);
+		window.draw(AbilityDescription);
+	}
+	~InfoRect() {}
+};
 #endif //GAMEMENU_H
