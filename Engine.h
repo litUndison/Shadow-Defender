@@ -156,7 +156,7 @@ int GameStart()
 	HWND consoleWindow = GetConsoleWindow();
 	ShowWindow(consoleWindow, SW_SHOW);
 	setlocale(LC_ALL, "rus");
-	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Fullscreen);
+	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Default);
 	window.setFramerateLimit(60);
 
 	Cursor cursor;
@@ -406,7 +406,7 @@ int GameStart()
 		/*InfoRect(string& way_path, int PosX, int PosY, String Name, String Description)*/
 		InfoRect Ability1Info("data/images/Weapon1Icon.png", 400,100, "Shadow Blade", L"пр€мой удар перед собой нанос€щий урон и отталкивающий врагов");
 		InfoRect Ability2Info("data/images/Weapon2Icon.psd", 400,250, "Magic Prism", L"выстрел в случайного врага с его отталкиванием. Ќедостаточно силЄн, чтобы пробить его насквозь");
-		InfoRect Ability3Info("data/images/Attack3.png", 400,400, "Holy Crosses", L"¬ращающа€с€ вокруг персонажа атака, нанос€ща€ урон и отталкивающа€");
+		InfoRect Ability3Info("data/images/Attack3.png", 400,400, "Holy Crosses", L"¬ращающа€с€ вокруг персонажа атака, отталкивающа€ и нанос€ща€ урон");
 		InfoRect Ability4Info("data/images/Weapon4Icon.psd", 400,550, "Bloody pentagram", L"ѕентаграмма, в зоне поражени€ которой враги замедл€ютс€");
 		InfoRect Ability5Info("data/images/Weapon5Icon.png", 400,700, "Soul Stone", L"после убийства нужного количества врагов исцел€ет персонажа");
 		InfoRect Ability6Info("data/images/Weapon6Icon.png", 400,850, "Mysterious clock", L"странные часы. „то же они делают? »звестно одно: урона от них не видать");
@@ -418,7 +418,7 @@ int GameStart()
 		//
 
 		/*buffer.loadFromFile();*/
-		bool isMenu = true; // огромный цикл который позвол€ет зациклить меню-игру, чтобы работало нужно два true))
+		bool isMenu = false; // огромный цикл который позвол€ет зациклить меню-игру, чтобы работало нужно два true))
 		bool isIntro = false; // потом вернуть true
 		bool isAnimation[4] = { false, false, false, false }; //mas[0] - анимаци€ "»грать", 1 - анимаци€ "Ќастройки" и т.д.
 		MainMenu Menu(Main_texture);
@@ -483,11 +483,17 @@ int GameStart()
 						save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
 						window.close();
 					}
-					//if (event.type == Event::KeyPressed)
-					//{
-					//	if (event.key.code == Keyboard::Escape) // это потом удалить, сделал чтобы выйти в игру вцелом
-					//		isMenu = false;
-					//}
+					if (event.type == Event::KeyPressed)
+					{
+						if (event.key.code == Keyboard::Escape) // это потом удалить, сделал чтобы выйти в игру вцелом
+						{
+							for (int i = 0; i < 4; i++)
+							{
+								if (isAnimation[i])
+									isAnimation[i] = !isAnimation[i];
+							}
+						}
+					}
 					if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
 					{
 						Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
@@ -1018,6 +1024,10 @@ int GameStart()
 		vector<Enemy>::iterator iter;
 		Texture enemy_texture;
 		Texture enemy_damage_texture;
+		Texture BossTexture;
+		BossTexture.loadFromFile("data/images/Boss.psd");
+		Texture BossDamageTexture;
+		BossDamageTexture.loadFromFile("data/images/BossDamage.psd");
 
 		float deltatime;
 		Event close;
@@ -1133,7 +1143,7 @@ int GameStart()
 					if (dtSpawn >= spawnInterval)
 					{
 						Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage);
+						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage, false);
 
 						if (!enemies.empty() && enemies[0].TimeStop)
 						{
@@ -1148,6 +1158,18 @@ int GameStart()
 					//  аждую минуту (60 секунд) уменьшаем интервал, но не меньше 0.1
 					if (dtInterval >= 60.f)
 					{
+						
+
+						Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
+						Enemy boss(BossTexture, BossDamageTexture, spawnPos.x, spawnPos.y, Hero, EnemyHP * 10, float(EnemyDamage) * 1.5f, true);
+
+						if (!enemies.empty() && enemies[0].TimeStop)
+						{
+							boss.TimeStop = true;
+							boss.currentspeed = enemies[0].currentspeed;
+						}
+						enemies.push_back(boss);
+
 						if (spawnInterval - intervalReduction >= minSpawnInterval)
 						{
 							spawnInterval -= intervalReduction;
@@ -1160,15 +1182,12 @@ int GameStart()
 						intervalClock.restart();
 					}
 				}
-				//if (gamePause != 1 && Keyboard::isKeyPressed(Keyboard::N))
-				//{
-				//	if (enemies.size() != 0)
-				//	{
-				//		enemies.erase(enemies.begin());
-				//		//cout << "Number of enemies: " << enemies.size() << endl;
-				//		//clock1.restart();
-				//	}
-				//}
+				/*if (gamePause != 1 && Keyboard::isKeyPressed(Keyboard::N))
+				{
+					Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
+					EnemyBoss boss("data/images/Boss.psd", "data/images/BossDamage.psd", spawnPos.x, spawnPos.y, Hero, EnemyHP * 10);
+					bosses.push_back(boss);
+				}*/
 				if (gamePause != 1)
 				{
 					for (int i = 0; i < enemies.size();)
@@ -1234,6 +1253,14 @@ int GameStart()
 				Hero.handleInput(gamePause, deltatime);
 				Hero.updateDamageAnimation();
 				Hero.DeathAnimation();
+				/*if (bosses.size() != 0)
+				{
+					for (int i = 0; i < bosses.size(); i++)
+					{
+						bosses[i].HeroFollow(gamePause, Hero.inheroBounds, Hero.hero_sprite, deltatime, enemies);
+
+					}
+				}*/
 				//Boss.HeroFollow(gamePause, Hero.inheroBounds, Hero.hero_sprite, deltatime, enemies);
 				//if (enemies.size() != 0)
 				//{
@@ -1362,7 +1389,6 @@ int GameStart()
 			{
 				enemies[i].EnemyUpdate(window);
 			}
-			//Boss.EnemyUpdate(window);
 			Hero.HeroDraw(window);
 			if (Hero.health <= 0)
 			{
