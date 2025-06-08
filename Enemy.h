@@ -33,7 +33,13 @@ private:
 	int HeroDamageBoost = 0;
 	int CountOfEXP = 20;
 
+	SoundBuffer damageBuffer;
+	Sound EnemyDamage;
+
 public:
+	enum EnemyType {basic, boss, entity};
+	EnemyType Type = basic;
+
 	bool isGray = false;
 	Color originalColor;
 
@@ -55,19 +61,26 @@ public:
 	bool isBoss = false;
 	//bool canTakeDamage = true;
 
-	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y, Hero& hero, int MAXHealth, int Damage, bool Boss)
+	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y, Hero& hero, int MAXHealth, int Damage, string type)
 	{
-		isBoss = Boss;
+		if (type == "basic")
+			Type = EnemyType::basic;
+		else if (type == "boss")
+			Type = EnemyType::boss;
+		else if (type == "entity")
+			Type = EnemyType::entity;
+
 		MaxHealth = MAXHealth;
 		Currenthealth = MaxHealth;
 		damage = Damage;
-
-
 		HeroDamageBoost = hero.damageBoost;
+
+
+
 		//damage_texture.loadFromFile(way_path);
-		damage_sprite.setTexture(damage_texture);
+		/*damage_sprite.setTexture(damage_texture);
 		damage_sprite.setScale(Vector2f(0.2f, 0.2f));
-		damage_sprite.setColor(Color(255, 255, 255, 0));
+		damage_sprite.setColor(Color(255, 255, 255, 0));*/
 
 		/*enemy_image.loadFromFile("data/images/car.png");*/
 		//enemy_image.loadFromFile("data/images/enemy.psd");
@@ -75,18 +88,39 @@ public:
 		enemy_sprite.setTexture(texture);
 		enemy_sprite.setPosition(x, y);
 		enemyBounds = enemy_sprite.getGlobalBounds();
+		damageBuffer.loadFromFile("data/music/EnemyDamage.mp3");
+		EnemyDamage.setBuffer(damageBuffer);
+		
+		EnemyDamage.setVolume(30);
 		
 		//enemy.setTextureRect(IntRect(45, 0, 48, 58));//выделяем из картинки отрезок. от координат (0,0) до (48,58)
-		if (!isBoss)
+		if (Type == EnemyType::basic)
 		{
 			enemy_sprite.setScale(Vector2f(0.2f, 0.2f));
 			enemy_sprite.setTextureRect(IntRect(0, 0, 205, 360));
+			damage_sprite.setTexture(damage_texture);
+			damage_sprite.setScale(Vector2f(0.2f, 0.2f));
+			damage_sprite.setColor(Color(255, 255, 255, 0));
 		}
-		else 
+		else if (Type == EnemyType::boss)
 		{
 			enemy_sprite.setScale(Vector2f(0.6f, 0.6f));
-			damage_sprite.setScale(Vector2f(0.6f, 0.6f));
 			enemy_sprite.setTextureRect(IntRect(0, 0, 192, 192));
+			damage_sprite.setTexture(damage_texture);
+			damage_sprite.setScale(Vector2f(0.6f, 0.6f));
+			damage_sprite.setColor(Color(255, 255, 255, 0));
+			CountOfEXP *= 7;
+		}
+		else
+		{
+			enemy_sprite.setScale(Vector2f(0.2f, 0.2f));
+			damage_sprite.setTexture(damage_texture);
+			damage_sprite.setColor(Color(255, 255, 255, 0));
+			damage_sprite.setScale(Vector2f(0.2f, 0.2f));
+			MaxHealth = 20;
+			Currenthealth = MaxHealth;
+			damage = 0;
+			canPush = false;
 		}
 
 	}
@@ -143,14 +177,14 @@ public:
 			{
 				CurrentFrame += 0.005 * deltatime;
 				if (CurrentFrame > 4) CurrentFrame -= 4;
-				if(!isBoss)
+				if(Type == EnemyType::basic)
 				{
 					if (CurrentFrame != 0) Xmove = 15 * int(CurrentFrame);
 					else Xmove = 0;
 					if (!TimeStop)
 						enemy_sprite.setTextureRect(IntRect((int(CurrentFrame) * 195) + Xmove, 0, 205, 360));
 				}
-				else
+				else if (Type == EnemyType::boss)
 				{
 					if (CurrentFrame != 0) Xmove = 9 * int(CurrentFrame);
 					else Xmove = 0;
@@ -166,14 +200,14 @@ public:
 			{
 				CurrentFrame += 0.005 * deltatime;
 				if (CurrentFrame > 4) CurrentFrame -= 4;
-				if (!isBoss)
+				if (Type == EnemyType::basic)
 				{
 					if (CurrentFrame != 0) Xmove = 15 * int(CurrentFrame);
 					else Xmove = 0;
 					if (!TimeStop)
 						enemy_sprite.setTextureRect(IntRect((int(CurrentFrame) * 195) + Xmove, 375, 205, 360));
 				}
-				else
+				else if (Type == EnemyType::boss)
 				{
 					if (CurrentFrame != 0) Xmove = 9 * int(CurrentFrame);
 					else Xmove = 0;
@@ -186,61 +220,63 @@ public:
 				rotate = 2;
 				
 			}
-
-			if (hero.getPosition().x != enemy_sprite.getPosition().x)
+			if (Type != EnemyType::entity)
 			{
-				if (enemydif_x < 0)
+				if (hero.getPosition().x != enemy_sprite.getPosition().x)
 				{
-					enemy_sprite.move(-(currentspeed * (supX / sqrt(supX * supX + supY * supY))), 0);
-					Collision(enemies, currentspeed * (supX / sqrt(supX * supX + supY * supY)), 0);
+					if (enemydif_x < 0)
+					{
+						enemy_sprite.move(-(currentspeed * (supX / sqrt(supX * supX + supY * supY))), 0);
+						Collision(enemies, currentspeed * (supX / sqrt(supX * supX + supY * supY)), 0);
+					}
+					else
+					{
+						enemy_sprite.move(currentspeed * (supX / sqrt(supX * supX + supY * supY)), 0);
+						Collision(enemies, -(currentspeed * (supX / sqrt(supX * supX + supY * supY))), 0);
+					}
+
 				}
-				else
+				if (hero.getPosition().y != enemy_sprite.getPosition().y)
 				{
-					enemy_sprite.move(currentspeed * (supX / sqrt(supX * supX + supY * supY)), 0);
-					Collision(enemies, -(currentspeed * (supX / sqrt(supX * supX + supY * supY))), 0);
+					if (enemydif_y < 0)
+					{
+						enemy_sprite.move(0, -(currentspeed * (supY / sqrt(supX * supX + supY * supY))));
+						Collision(enemies, 0, currentspeed * (supY / sqrt(supX * supX + supY * supY)));
+					}
+					else
+						enemy_sprite.move(0, currentspeed * (supY / sqrt(supX * supX + supY * supY)));
+					Collision(enemies, 0, -(currentspeed * (supY / sqrt(supX * supX + supY * supY))));
+
 				}
 
-			}
-			if (hero.getPosition().y != enemy_sprite.getPosition().y)
-			{
-				if (enemydif_y < 0)
+				if (inheroBounds.intersects(enemyBounds))
 				{
-					enemy_sprite.move(0, -(currentspeed * (supY / sqrt(supX * supX + supY * supY))));
-					Collision(enemies, 0, currentspeed * (supY / sqrt(supX * supX + supY * supY)));
-				}
-				else
-					enemy_sprite.move(0, currentspeed * (supY / sqrt(supX * supX + supY * supY)));
-				Collision(enemies, 0, -(currentspeed * (supY / sqrt(supX * supX + supY * supY))));
+					if (enemydif_x < 0)
+					{
+						if (abs(enemydif_x) < abs(enemydif_y))
+							enemy_sprite.move((currentspeed * (supX / sqrt(supX * supX + supY * supY))), 0);
+						else
+							enemy_sprite.move(currentspeed, 0);
+					}
+					else
+						if (abs(enemydif_x) < abs(enemydif_y))
+							enemy_sprite.move(-currentspeed * (supX / sqrt(supX * supX + supY * supY)), 0);
+						else
+							enemy_sprite.move(-currentspeed, 0);
 
-			}
-
-			if (inheroBounds.intersects(enemyBounds))
-			{
-				if (enemydif_x < 0)
-				{
-					if (abs(enemydif_x) < abs(enemydif_y))
-						enemy_sprite.move((currentspeed * (supX / sqrt(supX * supX + supY * supY))), 0);
+					if (enemydif_y < 0)
+					{
+						if (abs(enemydif_x) > abs(enemydif_y))
+							enemy_sprite.move(0, (currentspeed * (supX / sqrt(supX * supX + supY * supY))));
+						else
+							enemy_sprite.move(0, currentspeed);
+					}
 					else
-						enemy_sprite.move(currentspeed, 0);
+						if (abs(enemydif_x) > abs(enemydif_y))
+							enemy_sprite.move(0, -currentspeed * (supX / sqrt(supX * supX + supY * supY)));
+						else
+							enemy_sprite.move(0, -currentspeed);
 				}
-				else
-					if (abs(enemydif_x) < abs(enemydif_y))
-						enemy_sprite.move(-currentspeed * (supX / sqrt(supX * supX + supY * supY)), 0);
-					else
-						enemy_sprite.move(-currentspeed, 0);
-
-				if (enemydif_y < 0)
-				{
-					if (abs(enemydif_x) > abs(enemydif_y))
-						enemy_sprite.move(0, (currentspeed * (supX / sqrt(supX * supX + supY * supY))));
-					else
-						enemy_sprite.move(0, currentspeed);
-				}
-				else
-					if (abs(enemydif_x) > abs(enemydif_y))
-						enemy_sprite.move(0, -currentspeed * (supX / sqrt(supX * supX + supY * supY)));
-					else
-						enemy_sprite.move(0, -currentspeed);
 			}
 			enemyBounds = enemy_sprite.getGlobalBounds();
 		}
@@ -248,17 +284,20 @@ public:
 	}
 	void DamageDeal(int gamePause, Hero& Hero, const float damageInterval, Clock& damageClock)
 	{
-		if (gamePause != true && TimeStop != true)
+		if (Type != EnemyType::entity)
 		{
-			FloatRect heroBounds1 = Hero.heroBounds;
-			if (heroBounds1.intersects(enemyBounds) && damageClock.getElapsedTime().asSeconds() >= damageInterval)
+			if (gamePause != true && TimeStop != true)
 			{
-				Hero.isTakingDamage = true;
-				Hero.DamageTakenAnimation.restart();
-				Hero.health -= damage * (1.f - float(Hero.armor) / 100); // Уменьшаем здоровье
-				
-				damageClock.restart(); // Сбрасываем таймер
-				/*damagetaken.play();*/
+				FloatRect heroBounds1 = Hero.heroBounds;
+				if (heroBounds1.intersects(enemyBounds) && damageClock.getElapsedTime().asSeconds() >= damageInterval)
+				{
+					Hero.isTakingDamage = true;
+					Hero.DamageTakenAnimation.restart();
+					Hero.health -= damage * (1.f - float(Hero.armor) / 100); // Уменьшаем здоровье
+					Hero.DamageSound();
+					damageClock.restart(); // Сбрасываем таймер
+
+				}
 			}
 		}
 	}
@@ -272,6 +311,9 @@ public:
 	{
 		if (CanTakeDamage[WeaponIndex])
 		{
+			EnemyDamage.setBuffer(damageBuffer); // этот звук говно собачье. ПОЧЕМУ КОГДА Я ЕГО ЗАПОЛНЯЮ В КОНСТРУКТОРЕ ОН ВСЁ РАВНО ПРОРАДАЕТ. ЧТО Я ДЕЛАЮ НЕ ТАК??
+			EnemyDamage.stop();
+			EnemyDamage.play();
 			Currenthealth -= damage * (1.f + float(HeroDamageBoost)/100);
 			// Запускаем анимацию
 			DamageTakenAnimation.restart();
@@ -283,19 +325,23 @@ public:
 			CanTakeDamage[WeaponIndex] = false;
 		}
 	}
+	EnemyType getType()
+	{
+		return Type;
+	}
 	void updateDamageAnimation()
 	{
 		if (!isTakingDamage) return;
 
 		if (rotate == 1)
 		{
-			if(!isBoss)
+			if(Type == EnemyType::basic)
 				damage_sprite.setTextureRect(IntRect(0, 0, 195, 360));
 		}
 		else
 		{
-			if (!isBoss)
-			damage_sprite.setTextureRect(IntRect(195, 0, 195, 360));
+			if (Type == EnemyType::basic)
+				damage_sprite.setTextureRect(IntRect(195, 0, 195, 360));
 		}
 
 		sf::Time elapsed = DamageTakenAnimation.getElapsedTime();

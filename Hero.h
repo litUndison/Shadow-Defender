@@ -17,7 +17,9 @@ private:
 	int RequireEXP = 150; // необходимое кол-во
 	float DeathScale = 1;
 	int transparent = 255;
-
+	Music LevelUpSound;
+	SoundBuffer Buffer;
+	Sound HeroDamage;
 
 public:
 	int Level = 0;
@@ -44,13 +46,19 @@ public:
 
 	FloatRect inheroBounds; // эт тоже
 	FloatRect heroBounds;
+	
 
 	Hero(int x, int y, int Health = 100, int DamageBoost = 0, int Armor = 0/*, int WhichAbilityHave = 0*/)
 	{
+		LevelUpSound.openFromFile("data/music/LevelUp.mp3");
+		LevelUpSound.setVolume(10.f);
+		Buffer.loadFromFile("data/music/HeroDamage.mp3");
+		HeroDamage.setBuffer(Buffer);
+
 		MAXhealth = Health;
 		health = Health;
-		damageBoost = DamageBoost*2;
-		armor = Armor*2;
+		damageBoost = DamageBoost;
+		armor = Armor;
 		//HaveAbilities[WhichAbilityHave] += true;
 
 		hero_image.loadFromFile("data/images/character1.png");
@@ -205,7 +213,11 @@ public:
 			}
 		}
 	}
-
+	void DamageSound()
+	{
+		HeroDamage.stop();
+		HeroDamage.play();
+	}
 	void updateDamageAnimation()
 	{
 		if (!isTakingDamage) return;
@@ -256,6 +268,10 @@ public:
 		hero_sprite.setColor(Color(255, 255, 255, transparent));
 		transparent -= 25;
 	}
+	void setVolume(int Volume)
+	{
+		LevelUpSound.setVolume(50.f * float(Volume) / 100.f);
+	}
 	void HeroDraw(RenderWindow& window)
 	{
 		inheroBounds = heroCollision.getGlobalBounds();
@@ -273,6 +289,7 @@ public:
 			RequireEXP += 50;
 			Level += 1;
 			UpgradePoint += 1;
+			LevelUpSound.play();
 		}
 	}
 	int getEXP()

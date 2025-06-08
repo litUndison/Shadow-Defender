@@ -233,12 +233,15 @@ private:
     Vector2f startPosition;
     bool useDoubleAttack = false;
     int maxDistance = 100;
+    Music AttackSound;
 
 public:
     int Level = 1;
 
     Ability1(int Damage, string Directory)
     {
+        AttackSound.openFromFile("data/music/Attack1.mp3");
+        AttackSound.setVolume(25.f);
         damage = Damage;
         ability_texture.loadFromFile(Directory);
 
@@ -257,6 +260,7 @@ public:
         if (active == true)
             return;
 
+        AttackSound.play();
         switch (character.HeroDirection)
         {
         case 0:
@@ -292,7 +296,10 @@ public:
         startPosition = heroSprite.getPosition();
         active = true;
     }
-
+    void setVolume(int Volume)
+    {
+        AttackSound.setVolume(25.f*float(Volume)/100.f);
+    }
     void update(sf::RenderWindow& window, vector<Enemy>& enemies)
     {
         if (active == false)
@@ -308,7 +315,8 @@ public:
             for (int i = 0; i < enemies.size(); i++)
             {
                 enemies[i].CanTakeDamage[0] = true;
-                enemies[i].canPush = true;
+                if (enemies[i].getType() != enemies[i].EnemyType::entity)
+                    enemies[i].canPush = true;
             }
             return;
         }
@@ -323,7 +331,7 @@ public:
             if (enemies[i].getGlobalBounds().intersects(bounds1))
             {
                 enemies[i].takeDamage(damage, 0);
-                if (enemies[i].canPush)
+                if (enemies[i].canPush && enemies[i].getType() != enemies[i].EnemyType::entity)
                 {
                     enemies[i].enemy_sprite.move(direction * 50.f);
                     enemies[i].canPush = false;
@@ -339,7 +347,8 @@ public:
                 if (enemies[i].getGlobalBounds().intersects(bounds2))
                 {
                     enemies[i].takeDamage(damage, 0);
-                    if (enemies[i].canPush)
+
+                    if (enemies[i].canPush && enemies[i].getType() != enemies[i].EnemyType::entity)
                     {
                         enemies[i].enemy_sprite.move(-direction * 50.f);
                         enemies[i].canPush = false;
@@ -515,7 +524,8 @@ public:
                         if (enemy.CanTakeDamage[1] && (enemy.lastHitByProjectile2 != i || enemy.damageCooldown2.getElapsedTime().asMilliseconds() >= 200))
                         {
                             enemy.takeDamage(damage, 1);
-                            enemy.enemy_sprite.move(directions[i] * 50.f);
+                            if (enemy.getType() != enemy.EnemyType::entity)
+                                enemy.enemy_sprite.move(directions[i] * 50.f);
                             DamageCounts += 1;
                             enemy.lastHitByProjectile2 = i;
                             enemy.damageCooldown2.restart();
@@ -583,7 +593,7 @@ public:
             break;
         case 6:
             //damage += 10;
-            DamageLimit += 2;
+            DamageLimit += 1;
             break;
         }
     }
@@ -744,7 +754,8 @@ public:
                             if (length != 0)
                                 pushDirection /= length;
 
-                            enemy.enemy_sprite.move(pushDirection * 50.f);
+                            if (enemy.getType() != enemy.EnemyType::entity)
+                                enemy.enemy_sprite.move(pushDirection * 50.f);
 
                             // Сохраняем индекс снаряда, от которого был урон
                             enemy.lastHitByProjectile3 = i;

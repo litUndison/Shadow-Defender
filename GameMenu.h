@@ -562,7 +562,7 @@ public:
 		const Font& Font, const String& Legend, int TextSize, const Color& colortext, Image& AbilityImg, Image& Frame/*–¿ÏÍ‡*/, bool CanClick = true, int Thickness = 0, int UpgradeLevel = 0, int Prise = 25)
 	{
 		upgradeLevel = UpgradeLevel;
-		if (Prise != 100)
+		if (Prise != 225)
 		{
 			prise = Prise;
 			PriseText.setString(to_string(prise));

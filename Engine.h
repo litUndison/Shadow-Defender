@@ -206,7 +206,7 @@ int GameStart()
 
 
 		int UpgradeLevels[3];
-		int UpgradeMoneyCount[3] = { 25,25,25 };
+		int UpgradeMoneyCount[3] = { 75,75,75 };
 
 
 		int Difficulty = 2; // 1 - easy, 2 - normal, 3 - hard    ))))
@@ -230,7 +230,7 @@ int GameStart()
 
 		for (int i = 0; i < 3; i++)
 		{
-			UpgradeMoneyCount[i] = 25 + UpgradeLevels[i] * 25;
+			UpgradeMoneyCount[i] = 75 + UpgradeLevels[i] * 50;
 		}
 		//--------------------------------ГЛАВНОЕ МЕНЮ----------------------------
 		Texture Main_texture;
@@ -409,7 +409,7 @@ int GameStart()
 		InfoRect Ability3Info("data/images/Attack3.png", 400,400, "Holy Crosses", L"Вращающаяся вокруг персонажа атака, отталкивающая и наносящая урон");
 		InfoRect Ability4Info("data/images/Weapon4Icon.psd", 400,550, "Bloody pentagram", L"Пентаграмма, в зоне поражения которой враги замедляются");
 		InfoRect Ability5Info("data/images/Weapon5Icon.png", 400,700, "Soul Stone", L"после убийства нужного количества врагов исцеляет персонажа");
-		InfoRect Ability6Info("data/images/Weapon6Icon.png", 400,850, "Mysterious clock", L"странные часы. Что же они делают? Известно одно: урона от них не видать");
+		InfoRect Ability6Info("data/images/Weapon6Icon.psd", 400,850, "Mysterious clock", L"странные часы. Что же они делают? Известно одно: урона от них не видать");
 		//---------------------------------------------------------------------
 
 		//характеристики врагов, которые будут меняться. Возможно надр будет поменять приросты
@@ -799,7 +799,7 @@ int GameStart()
 
 		float spawnInterval = 1.5f;
 		int EnemyDamage = 15;
-		Hero Hero(3500, 3500, 100 + UpgradeLevels[0]*25, UpgradeLevels[1]*5, UpgradeLevels[2]*5);
+		Hero Hero(3500, 3500, 100 + UpgradeLevels[0]*25, UpgradeLevels[1]*10, UpgradeLevels[2]*10);
 		
 		//характеристики врагов, которые будут меняться. Возможно надр будет поменять приросты
 		//int EnemyHP = 100;
@@ -833,9 +833,7 @@ int GameStart()
 		}
 		}
 
-		Music GameMusic1;
-		GameMusic1.openFromFile("data/music/Game1.mp3");
-		GameMusic1.setVolume(30.f * (float(MusicVolume) / 100));
+		
 
 		View uiView;
 		//-----------------------ЧУТЬ-ЧУТЬ ИНТЕРФЕЙСА ИГРЫ--------------------------------
@@ -949,7 +947,7 @@ int GameStart()
 		int RotateScale = 0;
 		//
 		/*AbilitiesUI(int PosX, int PosY, int RectSize, int SpaceBetween, string way_path1, string way_path2, string way_path3, string way_path4, string way_path5, string way_path6)*/
-		string AbilitiesWayPath[6] = { "data/images/Weapon1Icon.png", "data/images/Weapon2Icon.psd", "data/images/Attack3.png", "data/images/Weapon4Icon.psd", "data/images/Weapon5Icon.png", "data/images/Attack1.png" };
+		string AbilitiesWayPath[6] = { "data/images/Weapon1Icon.png", "data/images/Weapon2Icon.psd", "data/images/Attack3.png", "data/images/Weapon4Icon.psd", "data/images/Weapon5Icon.png", "data/images/Weapon6Icon.psd" };
 		AbilitiesUI Abilities(50, 920, 70, 10, AbilitiesWayPath, "data/images/WeaponIcon.png");
 		//-----------------------ЧУТЬ-ЧУТЬ ИНТЕРФЕЙСА ИГРЫ(КОНЕЦ)--------------------------
 		// 
@@ -1024,6 +1022,13 @@ int GameStart()
 		vector<Enemy>::iterator iter;
 		Texture enemy_texture;
 		Texture enemy_damage_texture;
+
+		Texture entity_texture;
+		Texture entity_damage_texture;
+
+		entity_texture.loadFromFile("data/images/Entity.png");
+		entity_damage_texture.loadFromFile("data/images/EntityDamage.png");
+
 		Texture BossTexture;
 		BossTexture.loadFromFile("data/images/Boss.psd");
 		Texture BossDamageTexture;
@@ -1057,12 +1062,42 @@ int GameStart()
 		Clock spawnClock;  
 		Clock intervalClock; 
 
+		Music GameMusic[5];
+		//switch (Difficulty) // можно что-нибудь интересное из doom взять
+		//{
+		//case 3:
+		//{
+		//	break;
+		//}
+		//default:
+		//{
+			GameMusic[0].openFromFile("data/music/Game1.mp3");
+			GameMusic[1].openFromFile("data/music/Game2.mp3");
+			GameMusic[2].openFromFile("data/music/Game3.mp3");
+			GameMusic[3].openFromFile("data/music/Game4.mp3");
+			GameMusic[4].openFromFile("data/music/Game5.mp3");
+		//	break;
+		//}
+		//}
 
+		int CurrentTrack = 0;
+		bool PlayTrigger = false;
+
+		for (int i = 0; i < 5; ++i) {
+			GameMusic[i].setVolume(30.f * (float(MusicVolume) / 100));
+		}
 		//музычка
-		bool MusicNotStarted = true;
+		bool MusicFlags[5] = { false, true, true, true, true };
 		//GameMusic1.play();
 		//музычка
+		bool NotWorking = false; //триггер для музыки и сохранения
 
+		Music GameOverSound;
+		GameOverSound.openFromFile("data/music/GameOver.mp3");
+		GameOverSound.setVolume(50.f * float(SoundVolume)/100.f);
+		
+		
+		float dtInterval = 0;
 
 		while (window.isOpen())
 		{
@@ -1083,7 +1118,9 @@ int GameStart()
 				if (event.type == Event::Closed)//если событие "закрытие", окно закрывается
 				{
 					save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
-					GameMusic1.stop();
+					for (int i = 0; i < 5; ++i) {
+						GameMusic[i].stop();
+					}
 					window.close();
 					music.stop();
 				}
@@ -1097,7 +1134,17 @@ int GameStart()
 
 			if (StartGame)
 			{
+				if (!PlayTrigger) 
+				{
+					GameMusic[0].play();
+					PlayTrigger = true;
+				}
 
+				// если музыка закончилась — перейти к следующей
+				if (GameMusic[CurrentTrack].getStatus() == Music::Status::Stopped) {
+					CurrentTrack = (CurrentTrack + 1) % 5;
+					GameMusic[CurrentTrack].play();
+				}
 
 				if (delttime > 200 && Keyboard::isKeyPressed(Keyboard::Escape))
 				{
@@ -1138,12 +1185,12 @@ int GameStart()
 				if (gamePause != 1)
 				{
 					float dtSpawn = spawnClock.getElapsedTime().asSeconds();
-					float dtInterval = intervalClock.getElapsedTime().asSeconds();
+					dtInterval += intervalClock.restart().asSeconds();
 
 					if (dtSpawn >= spawnInterval)
 					{
 						Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage, false);
+						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage, "basic");
 
 						if (!enemies.empty() && enemies[0].TimeStop)
 						{
@@ -1153,15 +1200,24 @@ int GameStart()
 
 						enemies.emplace_back(enemy);
 						spawnClock.restart();
+
+						srand(time(nullptr));
+						int entitySpawn = rand() % 10; // от 0 до 2
+						if (entitySpawn < 1)	
+						{
+							Enemy enemy(entity_texture, entity_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage, "entity");
+							enemies.emplace_back(enemy);
+						}
+
 					}
 
 					// Каждую минуту (60 секунд) уменьшаем интервал, но не меньше 0.1
-					if (dtInterval >= 60.f)
+					if (dtInterval >= 63.f) // +3 потому что первые 3 секунды это загрузочный экран
 					{
 						
 
 						Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-						Enemy boss(BossTexture, BossDamageTexture, spawnPos.x, spawnPos.y, Hero, EnemyHP * 10, float(EnemyDamage) * 1.5f, true);
+						Enemy boss(BossTexture, BossDamageTexture, spawnPos.x, spawnPos.y, Hero, EnemyHP * 10, float(EnemyDamage) * 1.5f, "boss");
 
 						if (!enemies.empty() && enemies[0].TimeStop)
 						{
@@ -1180,7 +1236,12 @@ int GameStart()
 							spawnInterval = minSpawnInterval;
 						}
 						intervalClock.restart();
+						dtInterval = 0;
 					}
+				}
+				else
+				{
+					intervalClock.restart();
 				}
 				/*if (gamePause != 1 && Keyboard::isKeyPressed(Keyboard::N))
 				{
@@ -1196,12 +1257,23 @@ int GameStart()
 						{
 							if (enemies[i].DeathAnimation())
 							{
-								Hero.addEXP(enemies[i].getEXP());
-								EXPBar.Update(window, Hero);
-								CurrentScore += 1;
-								CurrentMoney += enemies[i].GivenMoney;
-								if (Hero.HaveAbilities[4] != 0)
-									ability5.update(1, Hero);
+								
+								if (enemies[i].getType() != enemies[i].EnemyType::entity)
+								{
+									Hero.addEXP(enemies[i].getEXP());
+									EXPBar.Update(window, Hero);
+									CurrentScore += 1;
+									CurrentMoney += enemies[i].GivenMoney;
+									if (Hero.HaveAbilities[4] != 0)
+										ability5.update(1, Hero);
+								}
+								else
+								{
+									if (Hero.MAXhealth - Hero.health >= 5)
+										Hero.health += 5;
+									else
+										Hero.health = Hero.MAXhealth;
+								}
 								enemies.erase(enemies.begin() + i);
 								//cout << "EXP: " << Hero.getEXP() << endl;
 								//cout << "Level: " << Hero.Level << " Points: " << Hero.UpgradePoint << endl;
@@ -1414,11 +1486,6 @@ int GameStart()
 			else
 			{
 				StartGame = true;
-				if (MusicNotStarted)
-				{
-					GameMusic1.play();
-					MusicNotStarted = false;
-				}
 			}
 			
 			//if (Hero.Upgrade == true)
@@ -1511,7 +1578,9 @@ int GameStart()
 					}
 					//MusicSlide.ButtonUpdate(window, event, MusicPercent, MusicVolume);
 					music.setVolume((30.f * (float(MusicVolume) / 100)));
-					GameMusic1.setVolume((30.f * (float(MusicVolume) / 100)));
+					for (int i = 0; i < 5; ++i) {
+						GameMusic[i].setVolume(30.f * (float(MusicVolume) / 100));
+					}
 					//SoundSlide.ButtonUpdate(window, event, SoundPercent, SoundVolume);
 					/*rect.setTextureRect(IntRect(0, 0, texture.getSize().x, texture.getSize().y));
 					rect.setPosition((positionScreen.x + dimensionScreenX / 2) - (Pause.getWidth() / 2), (positionScreen.y + dimensionScreenY / 2) - (Pause.getHeight() / 2));
@@ -1521,6 +1590,14 @@ int GameStart()
 				{
 					Loose.ButtonUpdate(window);
 					LooseText.ButtonUpdate(window);
+					static bool NotWorking = false;
+					if (!NotWorking)
+					{
+						GameOverSound.play();
+						CountOfMoney += CurrentMoney;
+						NotWorking = true;
+					}
+
 					if (BestScore < CurrentScore)
 					{
 						BestScore = CurrentScore;
@@ -1534,12 +1611,8 @@ int GameStart()
 					}
 					MoneyTaken.setText(L"Золота: ");
 					MoneyTaken2.setString(to_string(CurrentMoney));
-					static bool NotWorking = false;
-					if (!NotWorking)
-					{
-						CountOfMoney += CurrentMoney;
-						NotWorking = true;
-					}
+					
+					
 					save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
 
 					Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
@@ -1580,7 +1653,7 @@ int GameStart()
 					}
 					MoneyTaken.setText(L"Золота: ");
 					MoneyTaken2.setString(to_string(CurrentMoney));
-					static bool NotWorking = false;
+					
 					if (!NotWorking)
 					{
 						CountOfMoney += CurrentMoney;
