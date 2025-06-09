@@ -418,8 +418,8 @@ int GameStart()
 		//
 
 		/*buffer.loadFromFile();*/
-		bool isMenu = false; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
-		bool isIntro = false; // потом вернуть true
+		bool isMenu = true; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
+		bool isIntro = true; // потом вернуть true
 		bool isAnimation[4] = { false, false, false, false }; //mas[0] - анимация "Играть", 1 - анимация "Настройки" и т.д.
 		MainMenu Menu(Main_texture);
 		MainMenu intro(Intro_texture);
@@ -958,7 +958,7 @@ int GameStart()
 		Ability1 ability1(10, "data/images/Attack1.png");
 		Abilities.UpdateAbilities(Hero.HaveAbilities);
 		Ability2 ability2(10, "data/images/Attack2.png");
-		Ability3 ability3(10, 5, "data/images/Attack3.png", 1);
+		Ability3 ability3(10, 3, "data/images/Attack3.png", 1);
 		Ability4 ability4("data/images/Attack4.psd", 10);
 		Ability5 ability5(2, 10);
 		Ability6 ability6(60, 5);
@@ -1101,6 +1101,7 @@ int GameStart()
 		
 		
 		float dtInterval = 0;
+		float PushFactor = 1;
 
 		Hero.setVolume(SoundVolume);
 		GameOverSound.setVolume(45.f * float(SoundVolume) / 100.f);
@@ -1198,7 +1199,7 @@ int GameStart()
 					if (dtSpawn >= spawnInterval)
 					{
 						Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage, "basic");
+						Enemy enemy(enemy_texture, enemy_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage, "basic", PushFactor);
 
 						if (!enemies.empty() && enemies[0].TimeStop)
 						{
@@ -1213,7 +1214,7 @@ int GameStart()
 						int entitySpawn = rand() % 10; // от 0 до 2
 						if (entitySpawn < 1)	
 						{
-							Enemy enemy(entity_texture, entity_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage, "entity");
+							Enemy enemy(entity_texture, entity_damage_texture, spawnPos.x, spawnPos.y, Hero, EnemyHP, EnemyDamage, "entity", 0);
 							enemies.emplace_back(enemy);
 						}
 
@@ -1225,7 +1226,7 @@ int GameStart()
 						
 
 						Vector2f spawnPos = getRandomSpawnPosition(positionScreen.x, positionScreen.y);
-						Enemy boss(BossTexture, BossDamageTexture, spawnPos.x, spawnPos.y, Hero, EnemyHP * 10, float(EnemyDamage) * 1.5f, "boss");
+						Enemy boss(BossTexture, BossDamageTexture, spawnPos.x, spawnPos.y, Hero, EnemyHP * 10, float(EnemyDamage) * 1.5f, "boss", PushFactor/2);
 
 						if (!enemies.empty() && enemies[0].TimeStop)
 						{
@@ -1245,6 +1246,7 @@ int GameStart()
 						}
 						intervalClock.restart();
 						dtInterval = 0;
+						PushFactor -= 0.1;
 					}
 				}
 				else
@@ -1292,30 +1294,29 @@ int GameStart()
 						i++;
 					}
 				}
+				if (Hero.HaveAbilities[1])
+				{
+					ability2.update(Hero.hero_sprite, enemies, gamePause);
+					//AbilitiesCooldown[1].restart();
+				}
 
 				if (gamePause != 1)
 				{
 					if (enemies.size() != 0)
 					{
-					if (Hero.HaveAbilities[0] && AbilitiesTime[0] >= 1000)
-					{
-						ability1.attack(Hero.hero_sprite, Hero);
-						AbilitiesCooldown[0].restart();
-					}
-					if (Hero.HaveAbilities[1])
-					{
-						ability2.update(Hero.hero_sprite, enemies);
-						//AbilitiesCooldown[1].restart();
-					}
-					if (Hero.HaveAbilities[2])
-					{
-						ability3.update(Hero.hero_sprite, enemies);
-					}
-					if (Hero.HaveAbilities[3])
-					{
-						ability4.update(Hero.hero_sprite, enemies);
-					}
-					
+						if (Hero.HaveAbilities[0] && AbilitiesTime[0] >= 1000)
+						{
+							ability1.attack(Hero.hero_sprite, Hero);
+							AbilitiesCooldown[0].restart();
+						}
+						if (Hero.HaveAbilities[2])
+						{
+							ability3.update(Hero.hero_sprite, enemies);
+						}
+						if (Hero.HaveAbilities[3])
+						{
+							ability4.update(Hero.hero_sprite, enemies);
+						}
 					}
 				}
 				else

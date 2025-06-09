@@ -58,11 +58,15 @@ public:
 
 	bool TimeStop = false;
 	int GivenMoney = 1;
-	bool isBoss = false;
+	
+	float PushFactor = 1;
+
 	//bool canTakeDamage = true;
 
-	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y, Hero& hero, int MAXHealth, int Damage, string type)
+	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y, Hero& hero, int MAXHealth, int Damage, string type, int pushfactor)
 	{
+		PushFactor = pushfactor;
+
 		if (type == "basic")
 			Type = EnemyType::basic;
 		else if (type == "boss")

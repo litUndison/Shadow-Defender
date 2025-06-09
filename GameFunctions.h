@@ -333,7 +333,7 @@ public:
                 enemies[i].takeDamage(damage, 0);
                 if (enemies[i].canPush && enemies[i].getType() != enemies[i].EnemyType::entity)
                 {
-                    enemies[i].enemy_sprite.move(direction * 50.f);
+                    enemies[i].enemy_sprite.move(direction * 50.f*enemies[i].PushFactor);
                     enemies[i].canPush = false;
                 }
             }
@@ -431,7 +431,7 @@ private:
     float cooldown = 1.f; // интервал между выстрелами
     float speed = 10.f;
     int damage = 10;
-    float range = 1200.f;
+    float range = 1700.f;
 
     Sprite projectiles[15];
     Clock projectileTimers[15]; // дл€ возможного расширени€
@@ -464,8 +464,13 @@ public:
         }
     }
 
-    void update(const Sprite& heroSprite, vector<Enemy>& enemies)
+    void update(const Sprite& heroSprite, vector<Enemy>& enemies, bool isPause)
     {
+        if (isPause)
+        {
+            globalTimer.restart();
+            return;
+        }
         // ¬ыпуск новой серии снар€дов
         if (globalTimer.getElapsedTime().asSeconds() >= cooldown && !enemies.empty())
         {
@@ -522,7 +527,7 @@ public:
                         if (enemy.CanTakeDamage[1] && (enemy.lastHitByProjectile2 != i || enemy.damageCooldown2.getElapsedTime().asMilliseconds() >= 200))
                         {
                             enemy.takeDamage(damage, 1);
-                            enemy.enemy_sprite.move(directions[i] * 50.f);
+                            enemy.enemy_sprite.move(directions[i] * 50.f*enemy.PushFactor);
                             DamageCounts++;
                             enemy.lastHitByProjectile2 = i;
                             enemy.damageCooldown2.restart();
@@ -618,7 +623,7 @@ private:
     Texture ability_texture;
     Sprite ability_sprites[8];
 
-    int damage = 15;
+    int damage = 10;
 
     bool active = false;
     float cooldown;
@@ -764,7 +769,7 @@ public:
                                 pushDirection /= length;
 
                             if (enemy.getType() != enemy.EnemyType::entity)
-                                enemy.enemy_sprite.move(pushDirection * 50.f);
+                                enemy.enemy_sprite.move(pushDirection * 50.f*enemy.PushFactor);
 
                             // —охран€ем индекс снар€да, от которого был урон
                             enemy.lastHitByProjectile3 = i;
@@ -806,9 +811,7 @@ public:
         case 2:
             rotationSpeed += 20;
             radius += 25;
-            damage += 5;
             numProjectiles += 1;
-            duration += 1;
             break;
         case 3:
             rotationSpeed += 20;
@@ -828,6 +831,7 @@ public:
             {
                 ability_sprites[i].setScale(70.f / ability_texture.getSize().x, 70.f / ability_texture.getSize().y);
             }
+            duration += 1;
             break;
         case 6:
             numProjectiles = 8;
