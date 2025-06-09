@@ -44,18 +44,22 @@ void updateEnemies(
 )
 {
 	std::vector<std::future<void>> futures;
+	std::mutex damageMutex; // Мьютекс для синхронизации урона
 
 	for (Enemy& enemy : enemies)
 	{
-		futures.push_back(pool.enqueue([&enemy, gamePause, &heroBounds, &heroSprite, deltaTime, &enemies, &hero, damageInterval, &damageClock]()
+		futures.push_back(pool.enqueue([&enemy, gamePause, &heroBounds, &heroSprite, deltaTime, &enemies, &hero, damageInterval, &damageClock, &damageMutex]()
 			{
 				enemy.HeroFollow(gamePause, heroBounds, heroSprite, deltaTime, enemies);
+
+				// Секция синхронизации урона
+				std::scoped_lock lock(damageMutex);
 				enemy.DamageDeal(gamePause, hero, damageInterval, damageClock);
 			}));
 	}
 
 	for (auto& f : futures) {
-		f.get(); // ждём выполнения всех врагов
+		f.get(); // Ждём завершения всех задач
 	}
 };
 void save(int& MusicVolume, int& SoundVolume, int& BestScore, int& CountOfMoney, int& Upgrade1Level, int& Upgrade2Level, int& Upgrade3Level)
@@ -423,8 +427,8 @@ int GameStart()
 		//
 
 		/*buffer.loadFromFile();*/
-		bool isMenu = true; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
-		bool isIntro = true; // потом вернуть true
+		bool isMenu = false; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
+		bool isIntro = false; // потом вернуть true
 		bool isAnimation[4] = { false, false, false, false }; //mas[0] - анимация "Играть", 1 - анимация "Настройки" и т.д.
 		MainMenu Menu(Main_texture);
 		MainMenu intro(Intro_texture);
@@ -1134,14 +1138,14 @@ int GameStart()
 
 		Music GameOverSound;
 		GameOverSound.openFromFile("data/music/GameOver.mp3");
-		GameOverSound.setVolume(45.f * float(SoundVolume)/100.f);
+		GameOverSound.setVolume(100.f * float(SoundVolume)/100.f);
 		
 		
 		float dtInterval = 0;
 		
 
 		Hero.setVolume(SoundVolume);
-		GameOverSound.setVolume(45.f * float(SoundVolume) / 100.f);
+		//GameOverSound.setVolume(45.f * float(SoundVolume) / 100.f);
 		ability1.setVolume(SoundVolume);
 		ability2.setVolume(SoundVolume);
 
@@ -1640,7 +1644,7 @@ int GameStart()
 				{
 					Loose.ButtonUpdate(window);
 					LooseText.ButtonUpdate(window);
-					static bool NotWorking = false;
+					//static bool NotWorking = false;
 					if (!NotWorking)
 					{
 						GameOverSound.play();

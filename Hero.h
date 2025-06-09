@@ -54,7 +54,7 @@ public:
 		LevelUpSound.setVolume(10.f);
 		Buffer.loadFromFile("data/music/HeroDamage.mp3");
 		HeroDamage.setBuffer(Buffer);
-		HeroDamage.setVolume(200.f);
+		HeroDamage.setVolume(60.f);
 
 		MAXhealth = Health;
 		health = Health;
@@ -272,7 +272,7 @@ public:
 	void setVolume(int Volume)
 	{
 		LevelUpSound.setVolume(10.f * float(Volume) / 100.f);
-		HeroDamage.setVolume(200.f * float(Volume) / 100.f);
+		HeroDamage.setVolume(60.f * float(Volume) / 100.f);
 	}
 	void HeroDraw(RenderWindow& window)
 	{
