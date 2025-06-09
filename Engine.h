@@ -168,7 +168,12 @@ int GameStart()
 	while (true)
 	{
 
-		Texture grassTexture;
+		Texture grassTexture0;
+		Texture grassTexture01;
+		Texture grassTexture02;
+		Texture grassTexture1;
+		Texture grassTexture11;
+		Texture grassTexture12;
 
 		Clock damageClock;
 		////////////////
@@ -799,6 +804,7 @@ int GameStart()
 
 		float spawnInterval = 1.5f;
 		int EnemyDamage = 15;
+		float PushFactor = 1;
 		Hero Hero(3500, 3500, 100 + UpgradeLevels[0]*25, UpgradeLevels[1]*10, UpgradeLevels[2]*10);
 		
 		//характеристики врагов, которые будут меняться. Возможно надр будет поменять приросты
@@ -813,6 +819,7 @@ int GameStart()
 			spawnInterval = 2.f;
 			EnemyHP = 50;
 			EnemyHPUpgrade = 10;
+			PushFactor = 1;
 			break;
 		}
 		case 2:
@@ -821,6 +828,7 @@ int GameStart()
 			spawnInterval = 1.7f;
 			EnemyHP = 75;
 			EnemyHPUpgrade = 15;
+			PushFactor = 0.8f;
 			break;
 		}
 		case 3:
@@ -829,6 +837,7 @@ int GameStart()
 			spawnInterval = 1.5f;
 			EnemyHP = 100;
 			EnemyHPUpgrade = 25;
+			PushFactor = 0.7f;
 			break;
 		}
 		}
@@ -860,8 +869,8 @@ int GameStart()
 		PopUpButton SoundPauseText(210, 100, 600, 500, Color(100, 100, 100), font, L"Звук", 85, Color(158, 44, 44), 0, false, 6);
 		SoundSlider MusicPauseSlide(850, 365, 380, 70, MusicVolume);
 		SoundSlider SoundPauseSlide(850, 515, 380, 70, SoundVolume);
-		PopUpButton MusicPausePercent(210, 100, 1200, 350, Color(100, 100, 100), font, MusicSlide.getPercent(), 85, Color(158, 44, 44), 0, false, 6);
-		PopUpButton SoundPausePercent(210, 100, 1200, 500, Color(100, 100, 100), font, SoundSlide.getPercent(), 85, Color(158, 44, 44), 0, false, 6);
+		PopUpButton MusicPausePercent(210, 100, 1200, 350, Color(100, 100, 100), font, MusicPauseSlide.getPercent(), 85, Color(158, 44, 44), 0, false, 6);
+		PopUpButton SoundPausePercent(210, 100, 1200, 500, Color(100, 100, 100), font, SoundPauseSlide.getPercent(), 85, Color(158, 44, 44), 0, false, 6);
 
 		PopUpButton QuitToMenu(210, 100, (1920 / 2) - 105, 900, Color(100, 100, 100), font, L"Выйти в меню", 85, Color(115, 112, 112), 0, true, 6);
 
@@ -976,17 +985,45 @@ int GameStart()
 		//ХОТЬ ГДЕ-ТО Я МОГУ ПОЩУПАТЬ ТРАВКУ
 		//(ЕСЛИ Я САМ НЕ ПОНИМАЮ СВОИ РОФЛЫ СПУСТЯ ВРЕМЯ, ТО ОБЪЯСНЯЮ: СНИЗУ ТЕКСТУРА ТРАВЫ)
 
-		grassTexture.loadFromFile("data/images/grass1.png");
+		grassTexture0.loadFromFile("data/images/GrassType1.psd");
+		grassTexture01.loadFromFile("data/images/GrassType1.1.psd");
+		grassTexture02.loadFromFile("data/images/GrassType1.2.psd");
+		grassTexture1.loadFromFile("data/images/GrassType2.psd");
+		grassTexture11.loadFromFile("data/images/GrassType2.1.psd");
+		grassTexture12.loadFromFile("data/images/GrassType2.2.psd");
 
-		const int tileWidth = grassTexture.getSize().x;
-		const int tileHeight = grassTexture.getSize().y;
+		const int tileWidth = grassTexture0.getSize().x;
+		const int tileHeight = grassTexture0.getSize().y;
+		srand(time(nullptr));
 
+		
 		vector<Sprite> tiles;
-		grassTexture.setSmooth(true);
+		grassTexture0.setSmooth(true);
 		// Заполняем мир плитками
 		for (int x = 0; x < 7000; x += tileWidth) {
 			for (int y = 0; y < 7000; y += tileHeight) {
-				Sprite tile(grassTexture);
+				int grassSpawn = rand() % 20;
+				Sprite tile;
+				if (grassSpawn < 1)
+				{
+					int grassSpawn1 = rand() % 3;
+					if (grassSpawn1 == 0)
+						tile.setTexture(grassTexture1);
+					else if(grassSpawn1 == 1)
+						tile.setTexture(grassTexture11);
+					else if (grassSpawn1 == 2)
+						tile.setTexture(grassTexture12);
+				}
+				else
+				{
+					int grassSpawn1 = rand() % 1000;
+					if (grassSpawn1 < 990)
+						tile.setTexture(grassTexture0); 
+					else if (grassSpawn1 < 995)
+						tile.setTexture(grassTexture01); 
+					else
+						tile.setTexture(grassTexture02);
+				}
 				tile.setPosition(x, y);
 				tiles.push_back(tile);
 			}
@@ -1101,7 +1138,7 @@ int GameStart()
 		
 		
 		float dtInterval = 0;
-		float PushFactor = 1;
+		
 
 		Hero.setVolume(SoundVolume);
 		GameOverSound.setVolume(45.f * float(SoundVolume) / 100.f);
