@@ -241,7 +241,7 @@ public:
     Ability1(int Damage, string Directory)
     {
         AttackSound.openFromFile("data/music/Attack1.mp3");
-        AttackSound.setVolume(25.f);
+        AttackSound.setVolume(30.f);
         damage = Damage;
         ability_texture.loadFromFile(Directory);
 
@@ -298,7 +298,7 @@ public:
     }
     void setVolume(int Volume)
     {
-        AttackSound.setVolume(25.f*float(Volume)/100.f);
+        AttackSound.setVolume(30.f*float(Volume)/100.f);
     }
     void update(sf::RenderWindow& window, vector<Enemy>& enemies)
     {
@@ -434,17 +434,18 @@ private:
     float range = 1200.f;
 
     Sprite projectiles[15];
-    Clock projectileTimers[15];     // таймеры каждого снаряда
+    Clock projectileTimers[15]; // для возможного расширения
     bool isActive[15] = { false };
     bool canDamage[15] = { true };
     Vector2f directions[15];
     Vector2f startPositions[15];
     Vector2f endPositions[15];
 
-    Clock globalTimer; // используется для атаки
-
+    Clock globalTimer; // глобальный таймер для выпуска снарядов
+    int nextProjectileIndex = 0;
+    int volume = 100;
 public:
-    int numProjectiles = 1; // можно менять во время игры
+    int numProjectiles = 1; // ограничим до MAX_PROJECTILES
     int Level = 1;
     int DamageLimit = 1;
 
@@ -453,31 +454,26 @@ public:
         damage = Damage;
         cooldown = Cooldown;
         ability_texture.loadFromFile(Directory);
-        
 
         for (int i = 0; i < MAX_PROJECTILES; i++)
         {
             projectiles[i].setTexture(ability_texture);
             projectiles[i].setOrigin(ability_texture.getSize().x / 2, ability_texture.getSize().y / 2);
             AttackSound[i].openFromFile("data/music/Attack2.mp3");
-            AttackSound[i].setVolume(50);
+            AttackSound[i].setVolume(70);
         }
     }
 
     void update(const Sprite& heroSprite, vector<Enemy>& enemies)
     {
-        float currentTime = globalTimer.getElapsedTime().asSeconds();
-
-        for (int i = 0; i < numProjectiles; ++i)
+        // Выпуск новой серии снарядов
+        if (globalTimer.getElapsedTime().asSeconds() >= cooldown && !enemies.empty())
         {
-            int DamageCounts = 0;
-            int CurrentAttack = -1;
-            // Если не активен — запускаем, если пришло время
-            if (!isActive[i] && projectileTimers[i].getElapsedTime().asSeconds() >= cooldown)
+            for (int n = 0; n < numProjectiles; ++n)
             {
-                if (enemies.empty()) return;
+                int i = nextProjectileIndex;
+                nextProjectileIndex = (nextProjectileIndex + 1) % MAX_PROJECTILES;
 
-                // Запуск
                 AttackSound[i].play();
                 isActive[i] = true;
                 canDamage[i] = true;
@@ -493,22 +489,23 @@ public:
                 float len = sqrt(dir.x * dir.x + dir.y * dir.y);
                 if (len != 0) dir /= len;
 
-                // Добавим случайную погрешность в направлении (+-1–2 градуса)
-                float angleOffset = ((rand() % 5) - 2) * (3.14159265f / 180.f); // от -2 до +2 градуса в радианах
-
+                float angleOffset = ((rand() % 5) - 2) * (3.14159265f / 180.f);
                 float baseAngle = atan2(dir.y, dir.x);
                 float finalAngle = baseAngle + angleOffset;
 
-                // Пересчитаем направление с учетом погрешности
                 dir = Vector2f(cos(finalAngle), sin(finalAngle));
-
                 directions[i] = dir;
 
                 float angle = finalAngle * 180.f / 3.14159265f;
                 projectiles[i].setRotation(angle);
             }
 
-            // Если активен — движется
+            globalTimer.restart(); // сбрасываем таймер после всей серии
+        }
+
+        // Обновление активных снарядов
+        for (int i = 0; i < MAX_PROJECTILES; ++i)
+        {
             if (isActive[i])
             {
                 projectiles[i].move(directions[i] * speed);
@@ -516,7 +513,8 @@ public:
                 float traveled = sqrt(pow(projectiles[i].getPosition().x - startPositions[i].x, 2) +
                     pow(projectiles[i].getPosition().y - startPositions[i].y, 2));
 
-                // Проверка столкновений
+                int DamageCounts = 0;
+
                 for (auto& enemy : enemies)
                 {
                     if (canDamage[i] && enemy.getGlobalBounds().intersects(projectiles[i].getGlobalBounds()))
@@ -524,16 +522,14 @@ public:
                         if (enemy.CanTakeDamage[1] && (enemy.lastHitByProjectile2 != i || enemy.damageCooldown2.getElapsedTime().asMilliseconds() >= 200))
                         {
                             enemy.takeDamage(damage, 1);
-                            if (enemy.getType() != enemy.EnemyType::entity)
-                                enemy.enemy_sprite.move(directions[i] * 50.f);
-                            DamageCounts += 1;
+                            enemy.enemy_sprite.move(directions[i] * 50.f);
+                            DamageCounts++;
                             enemy.lastHitByProjectile2 = i;
                             enemy.damageCooldown2.restart();
                         }
-                        //canDamage[i] = false;
-                        
                     }
-                    if (DamageCounts == DamageLimit || traveled >= range)
+
+                    if (DamageCounts >= DamageLimit)
                     {
                         isActive[i] = false;
                         break;
@@ -544,18 +540,27 @@ public:
                 {
                     isActive[i] = false;
                 }
-
             }
         }
+
         for (auto& enemy : enemies)
         {
             enemy.CanTakeDamage[1] = true;
         }
     }
 
+    void setVolume(int Volume)
+    {
+        volume = Volume;
+        for (int i = 0; i < MAX_PROJECTILES; i++)
+        {
+            AttackSound[i].setVolume((70.f * float(Volume) / 100.f) * 2.f / (numProjectiles + 1));
+        } 
+    }
+
     void draw(RenderWindow& window)
     {
-        for (int i = 0; i < numProjectiles; ++i)
+        for (int i = 0; i < MAX_PROJECTILES; ++i)
         {
             if (isActive[i])
                 window.draw(projectiles[i]);
@@ -565,8 +570,8 @@ public:
     void addProjectileCount(int count)
     {
         numProjectiles += count;
-        if (numProjectiles > 15) // пожалуй 15 лучше не использовать. Глухота обеспечена
-            numProjectiles = 15;
+        if (numProjectiles > MAX_PROJECTILES)
+            numProjectiles = MAX_PROJECTILES;
     }
 
     void setUpgradeLevel(int level)
@@ -585,21 +590,25 @@ public:
             addProjectileCount(2);
             break;
         case 4:
-            damage += 5;
+            addProjectileCount(1);
             speed += 5;
             break;
         case 5:
-            addProjectileCount(2);
+            addProjectileCount(1);
             break;
         case 6:
-            //damage += 10;
             DamageLimit += 1;
             break;
+        }
+        for (int i = 0; i < MAX_PROJECTILES; i++)
+        {
+            AttackSound[i].setVolume((70.f * float(volume) / 100.f) * 2.f / (numProjectiles + 1));
         }
     }
 
     ~Ability2() {}
 };
+
 
 
 

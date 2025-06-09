@@ -23,7 +23,7 @@ private:
 
 public:
 	int Level = 0;
-	int UpgradePoint = 1; // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ ÍÀ 1
+	int UpgradePoint = 6; // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ ÍÀ 1
 	int HaveAbilities[6] = { 0, 0, 0, 0, 0, 0 };
 	int health;
 	int MAXhealth;
@@ -54,6 +54,7 @@ public:
 		LevelUpSound.setVolume(10.f);
 		Buffer.loadFromFile("data/music/HeroDamage.mp3");
 		HeroDamage.setBuffer(Buffer);
+		HeroDamage.setVolume(90.f);
 
 		MAXhealth = Health;
 		health = Health;
@@ -270,7 +271,8 @@ public:
 	}
 	void setVolume(int Volume)
 	{
-		LevelUpSound.setVolume(50.f * float(Volume) / 100.f);
+		LevelUpSound.setVolume(10.f * float(Volume) / 100.f);
+		HeroDamage.setVolume(90.f * float(Volume) / 100.f);
 	}
 	void HeroDraw(RenderWindow& window)
 	{

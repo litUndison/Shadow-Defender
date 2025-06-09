@@ -33,8 +33,8 @@ private:
 	int HeroDamageBoost = 0;
 	int CountOfEXP = 20;
 
-	SoundBuffer damageBuffer;
-	Sound EnemyDamage;
+	//SoundBuffer damageBuffer;
+	//Sound EnemyDamage;
 
 public:
 	enum EnemyType {basic, boss, entity};
@@ -88,10 +88,10 @@ public:
 		enemy_sprite.setTexture(texture);
 		enemy_sprite.setPosition(x, y);
 		enemyBounds = enemy_sprite.getGlobalBounds();
-		damageBuffer.loadFromFile("data/music/EnemyDamage.mp3");
-		EnemyDamage.setBuffer(damageBuffer);
+		//damageBuffer.loadFromFile("data/music/EnemyDamage.mp3"); отказался от звука из-за ошибок. Фиксить сил нету. ОТЛОЖЕНО В ДОЛГИЙ ЯЩИК
+		//EnemyDamage.setBuffer(damageBuffer);
 		
-		EnemyDamage.setVolume(30);
+		//EnemyDamage.setVolume(20);
 		
 		//enemy.setTextureRect(IntRect(45, 0, 48, 58));//выделяем из картинки отрезок. от координат (0,0) до (48,58)
 		if (Type == EnemyType::basic)
@@ -109,7 +109,7 @@ public:
 			damage_sprite.setTexture(damage_texture);
 			damage_sprite.setScale(Vector2f(0.6f, 0.6f));
 			damage_sprite.setColor(Color(255, 255, 255, 0));
-			CountOfEXP *= 7;
+			CountOfEXP *= 8;
 		}
 		else
 		{
@@ -117,7 +117,7 @@ public:
 			damage_sprite.setTexture(damage_texture);
 			damage_sprite.setColor(Color(255, 255, 255, 0));
 			damage_sprite.setScale(Vector2f(0.2f, 0.2f));
-			MaxHealth = 20;
+			MaxHealth = 30;
 			Currenthealth = MaxHealth;
 			damage = 0;
 			canPush = false;
@@ -311,9 +311,9 @@ public:
 	{
 		if (CanTakeDamage[WeaponIndex])
 		{
-			EnemyDamage.setBuffer(damageBuffer); // этот звук говно собачье. ПОЧЕМУ КОГДА Я ЕГО ЗАПОЛНЯЮ В КОНСТРУКТОРЕ ОН ВСЁ РАВНО ПРОРАДАЕТ. ЧТО Я ДЕЛАЮ НЕ ТАК??
-			EnemyDamage.stop();
-			EnemyDamage.play();
+			//EnemyDamage.setBuffer(damageBuffer); // этот звук говно собачье. ПОЧЕМУ КОГДА Я ЕГО ЗАПОЛНЯЮ В КОНСТРУКТОРЕ ОН ВСЁ РАВНО ПРОПАДАЕТ. ЧТО Я ДЕЛАЮ НЕ ТАК??
+			//EnemyDamage.stop();
+			//EnemyDamage.play();
 			Currenthealth -= damage * (1.f + float(HeroDamageBoost)/100);
 			// Запускаем анимацию
 			DamageTakenAnimation.restart();

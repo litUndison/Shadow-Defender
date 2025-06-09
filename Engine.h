@@ -872,9 +872,12 @@ int GameStart()
 		PopUpButton QuitNo(350, 100, (1920 / 2), 575, Color(100, 100, 100), font, L"НЕ", 90, Color(180, 0, 0), 0, true, 6);
 
 		RectangleShape QuitRect;
-		QuitRect.setSize(Vector2f(700, 400));
-		QuitRect.setPosition((1920 / 2) - 350, 300);
+		QuitRect.setSize(Vector2f(750, 500));
+		QuitRect.setPosition((1920 / 2) - 375, 250);
 		QuitRect.setFillColor(Color(100, 100, 100, 255));
+		QuitRect.setOutlineThickness(5);
+		QuitRect.setOutlineColor(Color(70, 70, 70));
+		
 
 		//интерфейс поражения и победы
 		int CurrentScore = 0;
@@ -1094,10 +1097,15 @@ int GameStart()
 
 		Music GameOverSound;
 		GameOverSound.openFromFile("data/music/GameOver.mp3");
-		GameOverSound.setVolume(50.f * float(SoundVolume)/100.f);
+		GameOverSound.setVolume(45.f * float(SoundVolume)/100.f);
 		
 		
 		float dtInterval = 0;
+
+		Hero.setVolume(SoundVolume);
+		GameOverSound.setVolume(45.f * float(SoundVolume) / 100.f);
+		ability1.setVolume(SoundVolume);
+		ability2.setVolume(SoundVolume);
 
 		while (window.isOpen())
 		{
@@ -1581,6 +1589,10 @@ int GameStart()
 					for (int i = 0; i < 5; ++i) {
 						GameMusic[i].setVolume(30.f * (float(MusicVolume) / 100));
 					}
+					Hero.setVolume(SoundVolume);
+					GameOverSound.setVolume(45.f * float(SoundVolume) / 100.f);
+					ability1.setVolume(SoundVolume);
+					ability2.setVolume(SoundVolume);
 					//SoundSlide.ButtonUpdate(window, event, SoundPercent, SoundVolume);
 					/*rect.setTextureRect(IntRect(0, 0, texture.getSize().x, texture.getSize().y));
 					rect.setPosition((positionScreen.x + dimensionScreenX / 2) - (Pause.getWidth() / 2), (positionScreen.y + dimensionScreenY / 2) - (Pause.getHeight() / 2));
