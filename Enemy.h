@@ -63,7 +63,7 @@ public:
 
 	//bool canTakeDamage = true;
 
-	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y, Hero& hero, int MAXHealth, int Damage, string type, int pushfactor)
+	Enemy(const Texture& texture, const Texture& damage_texture, int x, int y, Hero& hero, int MAXHealth, int Damage, string type, float pushfactor)
 	{
 		PushFactor = pushfactor;
 
