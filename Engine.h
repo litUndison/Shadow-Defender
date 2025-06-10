@@ -160,7 +160,7 @@ int GameStart()
 	HWND consoleWindow = GetConsoleWindow();
 	ShowWindow(consoleWindow, SW_HIDE);
 	setlocale(LC_ALL, "rus");
-	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Fullscreen);
+	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Default);
 	window.setFramerateLimit(60);
 
 	Cursor cursor;
@@ -413,12 +413,12 @@ int GameStart()
 
 
 		/*InfoRect(string& way_path, int PosX, int PosY, String Name, String Description)*/
-		InfoRect Ability1Info("data/images/Weapon1Icon.png", 400,100, "Shadow Blade", L"прямой удар перед собой наносящий урон и отталкивающий врагов");
-		InfoRect Ability2Info("data/images/Weapon2Icon.psd", 400,250, "Magic Prism", L"выстрел в случайного врага с его отталкиванием. Недостаточно силён, чтобы пробить его насквозь");
-		InfoRect Ability3Info("data/images/Attack3.png", 400,400, "Holy Crosses", L"Вращающаяся вокруг персонажа атака, отталкивающая и наносящая урон");
-		InfoRect Ability4Info("data/images/Weapon4Icon.psd", 400,550, "Bloody pentagram", L"Пентаграмма, в зоне поражения которой враги замедляются");
-		InfoRect Ability5Info("data/images/Weapon5Icon.png", 400,700, "Soul Stone", L"после убийства нужного количества врагов исцеляет персонажа");
-		InfoRect Ability6Info("data/images/Weapon6Icon.psd", 400,850, "Mysterious clock", L"странные часы. Что же они делают? Известно одно: урона от них не видать");
+		InfoRect Ability1Info("data/images/Weapon1Icon.png", 400,100, L"Теневой клинок", L"прямой удар перед собой наносящий урон и отталкивающий врагов");
+		InfoRect Ability2Info("data/images/Weapon2Icon.psd", 400,250, L"Магическая призма", L"выстрел в случайного врага с его отталкиванием. Недостаточно силён, чтобы пробить его насквозь");
+		InfoRect Ability3Info("data/images/Attack3.png", 400,400, L"Святые кресты", L"Вращающаяся вокруг персонажа атака, отталкивающая и наносящая урон");
+		InfoRect Ability4Info("data/images/Weapon4Icon.psd", 400,550, L"Пентаграмма Крови", L"Пентаграмма, в зоне поражения которой враги замедляются");
+		InfoRect Ability5Info("data/images/Weapon5Icon.png", 400,700, L"Камень Душ", L"после убийства нужного количества врагов исцеляет персонажа");
+		InfoRect Ability6Info("data/images/Weapon6Icon.psd", 400,850, L"Мистические часы", L"странные часы. Что же они делают? Известно одно: урона от них не видать");
 		//---------------------------------------------------------------------
 
 		//характеристики врагов, которые будут меняться. Возможно надр будет поменять приросты
@@ -491,18 +491,19 @@ int GameStart()
 						music.stop();
 						save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
 						window.close();
+						return 0;
 					}
-					if (event.type == Event::KeyPressed)
-					{
-						if (event.key.code == Keyboard::Escape) // это потом удалить, сделал чтобы выйти в игру вцелом
-						{
-							for (int i = 0; i < 4; i++)
-							{
-								if (isAnimation[i])
-									isAnimation[i] = !isAnimation[i];
-							}
-						}
-					}
+					//if (event.type == Event::KeyPressed)
+					//{
+					//	if (event.key.code == Keyboard::Escape) // это потом удалить, сделал чтобы выйти в игру вцелом
+					//	{
+					//		for (int i = 0; i < 4; i++)
+					//		{
+					//			if (isAnimation[i])
+					//				isAnimation[i] = !isAnimation[i];
+					//		}
+					//	}
+					//}
 					if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
 					{
 						Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
@@ -580,6 +581,7 @@ int GameStart()
 								music.stop();
 								save(MusicVolume, SoundVolume, BestScore, CountOfMoney, Upgrade1Level, Upgrade2Level, Upgrade3Level);
 								window.close();
+								return 0;
 								/*isMenu = false;*/ // например, выйти из меню
 							}
 						}
@@ -1173,6 +1175,7 @@ int GameStart()
 					}
 					window.close();
 					music.stop();
+					return 0;
 				}
 			}
 

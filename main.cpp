@@ -29,7 +29,8 @@
 
 
 //---------------------------------------
-int main()
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	LPSTR lpCmdLine, int nCmdShow)
 {
 	GameStart();
 	//setlocale(LC_ALL, "rus");
