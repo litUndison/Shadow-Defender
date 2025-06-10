@@ -11,6 +11,8 @@ Global
 		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		stitic-Release|x64 = stitic-Release|x64
+		stitic-Release|x86 = stitic-Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{DDD9D0A6-BA75-480D-9CDE-1796FCF2E871}.Debug|x64.ActiveCfg = Debug|x64
@@ -21,6 +23,10 @@ Global
 		{DDD9D0A6-BA75-480D-9CDE-1796FCF2E871}.Release|x64.Build.0 = Release|x64
 		{DDD9D0A6-BA75-480D-9CDE-1796FCF2E871}.Release|x86.ActiveCfg = Release|Win32
 		{DDD9D0A6-BA75-480D-9CDE-1796FCF2E871}.Release|x86.Build.0 = Release|Win32
+		{DDD9D0A6-BA75-480D-9CDE-1796FCF2E871}.stitic-Release|x64.ActiveCfg = stitic-Release|x64
+		{DDD9D0A6-BA75-480D-9CDE-1796FCF2E871}.stitic-Release|x64.Build.0 = stitic-Release|x64
+		{DDD9D0A6-BA75-480D-9CDE-1796FCF2E871}.stitic-Release|x86.ActiveCfg = stitic-Release|Win32
+		{DDD9D0A6-BA75-480D-9CDE-1796FCF2E871}.stitic-Release|x86.Build.0 = stitic-Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

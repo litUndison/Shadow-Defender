@@ -158,9 +158,9 @@ void load(int& MusicVolume, int& SoundVolume, int& BestScore, int& CountOfMoney,
 int GameStart()
 {
 	HWND consoleWindow = GetConsoleWindow();
-	ShowWindow(consoleWindow, SW_SHOW);
+	ShowWindow(consoleWindow, SW_HIDE);
 	setlocale(LC_ALL, "rus");
-	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Default);
+	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Fullscreen);
 	window.setFramerateLimit(60);
 
 	Cursor cursor;
@@ -427,8 +427,8 @@ int GameStart()
 		//
 
 		/*buffer.loadFromFile();*/
-		bool isMenu = false; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
-		bool isIntro = false; // потом вернуть true
+		bool isMenu = true; // огромный цикл который позволяет зациклить меню-игру, чтобы работало нужно два true))
+		bool isIntro = true; // потом вернуть true
 		bool isAnimation[4] = { false, false, false, false }; //mas[0] - анимация "Играть", 1 - анимация "Настройки" и т.д.
 		MainMenu Menu(Main_texture);
 		MainMenu intro(Intro_texture);
@@ -628,7 +628,7 @@ int GameStart()
 					SoundSlide.ButtonUpdate(window, event, SoundPercent);
 					MusicPercent.ButtonUpdate(window);
 					SoundPercent.ButtonUpdate(window);*/
-					if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
+					if (Mouse::isButtonPressed(Mouse::Left))
 					{
 						Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
 						if (DifficultyEasy.getText().getGlobalBounds().contains(worldPos))
@@ -1607,7 +1607,7 @@ int GameStart()
 						WarningText1.ButtonUpdate(window);
 						QuitYes.ButtonUpdate(window);
 						QuitNo.ButtonUpdate(window);
-						if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left)
+						if (Mouse::isButtonPressed(Mouse::Left))
 						{
 							Vector2f worldPos = window.mapPixelToCoords(Mouse::getPosition(window));
 							if (QuitYes.getText().getGlobalBounds().contains(worldPos))
@@ -1650,19 +1650,23 @@ int GameStart()
 						GameOverSound.play();
 						CountOfMoney += CurrentMoney;
 						NotWorking = true;
+						if (BestScore < CurrentScore)
+						{
+							BestScore = CurrentScore;
+							Score1.setText(L"Счёт: ");
+							Score2.setString(to_string(CurrentScore));
+							Score3.setFillColor(Color(150, 150, 150, 255));
+							Score3.setOutlineColor(Color(50, 50, 50, 255));
+						}
+						else
+						{
+							Score1.setText(L"Счёт: ");
+							Score2.setString(to_string(CurrentScore));
+							Score3.setFillColor(Color(150, 150, 150, 0));
+							Score3.setOutlineColor(Color(50, 50, 50, 0));
+						}
 					}
 
-					if (BestScore < CurrentScore)
-					{
-						BestScore = CurrentScore;
-						Score1.setText(L"Счёт: ");
-						Score2.setString(to_string(CurrentScore));
-					}
-					else
-					{
-						Score1.setText(L"Счёт: ");
-						Score2.setString(to_string(CurrentScore));
-					}
 					MoneyTaken.setText(L"Золота: ");
 					MoneyTaken2.setString(to_string(CurrentMoney));
 					
@@ -1682,8 +1686,7 @@ int GameStart()
 					}
 					Score1.ButtonUpdate(window);
 					window.draw(Score2);
-					if (BestScore == CurrentScore)
-						window.draw(Score3);
+					window.draw(Score3);
 
 					MoneyTaken.ButtonUpdate(window);
 					window.draw(MoneyTaken2);

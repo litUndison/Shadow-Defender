@@ -428,13 +428,6 @@ public:
 	{
 		return CountOfEXP;
 	}
-	void setGray(bool enable)
-	{
-		if (enable)
-			enemy_sprite.setColor(Color(90, 90, 150)); // тёмно-синий
-		else
-			enemy_sprite.setColor(Color::White); // вернуть обычный цвет
-	}
 	~Enemy()
 	{
 	}

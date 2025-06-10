@@ -557,10 +557,12 @@ private:
 	int upgradeLevel; //0, 1, 2. Степень прокачки будет показываться делениями
 
 	bool canclick = false;
+	int PRISE;
 public:
 	AbilityButton(int Recwidth, int Recheight, int PosX, int PosY, const Color& colorshape,
 		const Font& Font, const String& Legend, int TextSize, const Color& colortext, Image& AbilityImg, Image& Frame/*РАмка*/, bool CanClick = true, int Thickness = 0, int UpgradeLevel = 0, int Prise = 25)
 	{
+		PRISE = Prise;
 		upgradeLevel = UpgradeLevel;
 		if (Prise != 225)
 		{
@@ -703,7 +705,7 @@ public:
 					if (upgradeLevel < 3)
 					{
 						upgradeLevel++;
-						prise = 25 + 25 * upgradeLevel;
+						prise = PRISE + 50 * upgradeLevel;
 						PriseText.setString(to_string(prise));
 					}
 					if (upgradeLevel == 3)
