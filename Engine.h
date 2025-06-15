@@ -279,7 +279,7 @@ int GameStart()
 		Music music;
 		//ß ÍÅ ÎÏĞÅÄÅËÈËÑß ×ÒÎ ÑÒÀÂÈÒÜ Â ÍÀ×ÀËÎ
 		srand(time(nullptr));
-		int introIndex = rand() % 2; // îò 0 äî 2
+		int introIndex = rand() % 3; // îò 0 äî 2
 		string filename = "data/music/Intro";
 		if (introIndex != 0)
 			filename += to_string(introIndex);
