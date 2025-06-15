@@ -160,7 +160,7 @@ int GameStart()
 	HWND consoleWindow = GetConsoleWindow();
 	ShowWindow(consoleWindow, SW_HIDE);
 	setlocale(LC_ALL, "rus");
-	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Default);
+	RenderWindow window(VideoMode(1920, 1080), "Shadow Defender", Style::Fullscreen);
 	window.setFramerateLimit(60);
 
 	Cursor cursor;
@@ -712,7 +712,7 @@ int GameStart()
 								if (Ability_1.ButtonUpdate(window, AbilityUpgrade, event, CountOfMoney))
 								{
 									CountOfMoney -= UpgradeMoneyCount[0];
-									UpgradeMoneyCount[0] += 25;
+									UpgradeMoneyCount[0] += 50;
 									Upgrade1Level++;
 								}
 							}
@@ -726,7 +726,7 @@ int GameStart()
 								if (Ability_2.ButtonUpdate(window, AbilityUpgrade, event, CountOfMoney))
 								{
 									CountOfMoney -= UpgradeMoneyCount[1];
-									UpgradeMoneyCount[1] += 25;
+									UpgradeMoneyCount[1] += 50;
 									Upgrade2Level++;
 								}
 							}
@@ -740,7 +740,7 @@ int GameStart()
 								if (Ability_3.ButtonUpdate(window, AbilityUpgrade, event, CountOfMoney))
 								{
 									CountOfMoney -= UpgradeMoneyCount[2];
-									UpgradeMoneyCount[2] += 25;
+									UpgradeMoneyCount[2] += 50;
 									Upgrade3Level++;
 								}
 							}
@@ -1387,16 +1387,16 @@ int GameStart()
 					}
 				}*/
 				//Boss.HeroFollow(gamePause, Hero.inheroBounds, Hero.hero_sprite, deltatime, enemies);
-				//if (enemies.size() != 0)
-				//{
-				//	for (iter = enemies.begin(); iter != enemies.end(); iter++)
-				//	{
-				//		iter->HeroFollow(gamePause, Hero.inheroBounds, Hero.hero_sprite, deltatime, enemies);
-				//		iter->DamageDeal(gamePause, Hero, damageInterval, damageClock);
-				//		/*iter->EnemyUpdate(window);*/
-				//	}
-				//}
-				updateEnemies(enemies, pool, gamePause, Hero.heroBounds, Hero.hero_sprite, deltatime, Hero, 0.8f, damageClock);
+				if (enemies.size() != 0)
+				{
+					for (iter = enemies.begin(); iter != enemies.end(); iter++)
+					{
+						iter->HeroFollow(gamePause, Hero.inheroBounds, Hero.hero_sprite, deltatime, enemies);
+						iter->DamageDeal(gamePause, Hero, damageInterval, damageClock);
+						/*iter->EnemyUpdate(window);*/
+					}
+				}
+				//updateEnemies(enemies, pool, gamePause, Hero.heroBounds, Hero.hero_sprite, deltatime, Hero, 0.8f, damageClock);
 			}
 			else
 			{
@@ -1506,14 +1506,14 @@ int GameStart()
 			if (enemies.size() != 0 && Hero.HaveAbilities[2])
 				ability3.draw(window);
 
-			/*for (auto& enemy : enemies)
+			for (auto& enemy : enemies)
 			{
 				enemy.EnemyUpdate(window);
-			}*/
-			for (int i = 0; i < enemies.size(); i++)
+			}
+			/*for (int i = 0; i < enemies.size(); i++)
 			{
 				enemies[i].EnemyUpdate(window);
-			}
+			}*/
 			Hero.HeroDraw(window);
 			if (Hero.health <= 0)
 			{

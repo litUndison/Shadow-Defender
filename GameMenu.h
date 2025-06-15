@@ -170,10 +170,6 @@ public:
 	{
 	}
 };
-class MovingRectangleShape
-{
-
-};
 class Intro
 {
 private:
