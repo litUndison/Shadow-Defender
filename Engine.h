@@ -265,13 +265,13 @@ int GameStart()
 		MoneySprite.setTexture(MoneyTexture);
 		MoneySprite.setScale(60.f / MoneyTexture.getSize().x, 60.f / MoneyTexture.getSize().y);
 		MoneySprite.setPosition(5, 5);
-		Button BestScoreText(400, 70, 1550, 900, Color(150, 150, 150), font, L"Лучший счёт:", 50, Color(200, 200, 0), 0, false, 5);
+		Button BestScoreText(400, 70, 1550, 900, Color(150, 150, 150), font, L"High score:", 50, Color(200, 200, 0), 0, false, 5);
 		Button BestScoreNumber(400, 70, 1550, 950, Color(190, 190, 190), font, to_string(BestScore), 50, Color(200, 200, 0), 0, false, 5);
-		Button Play(130, 70, 100, 350, Color(100, 100, 100), font, L"Играть", 100, Color(139, 0, 0), 0, true, 5);
-		Button Settings(130, 70, 100, 500, Color(100, 100, 100), font, L"Настройки", 100, Color(139, 0, 0), 0, true, 5);
-		Button Upgrade(130, 70, 100, 620, Color(100, 100, 100), font, L"Улучшения", 100, Color(139, 0, 0), 0, true, 5);
-		Button Info(130, 70, 100, 760, Color(100, 100, 100), font, L"Гримуар", 100, Color(139, 0, 0), 0, true, 5);
-		Button Exit(130, 70, 100, 960, Color(100, 100, 100), font, L"Выход", 100, Color(139, 0, 0), 0, true, 5);
+		Button Play(130, 70, 100, 350, Color(100, 100, 100), font, L"Play", 100, Color(139, 0, 0), 0, true, 5);
+		Button Settings(130, 70, 100, 500, Color(100, 100, 100), font, L"Settings", 100, Color(139, 0, 0), 0, true, 5);
+		Button Upgrade(130, 70, 100, 620, Color(100, 100, 100), font, L"Upgrades", 100, Color(139, 0, 0), 0, true, 5);
+		Button Info(130, 70, 100, 760, Color(100, 100, 100), font, L"Grimoire", 100, Color(139, 0, 0), 0, true, 5);
+		Button Exit(130, 70, 100, 960, Color(100, 100, 100), font, L"Exit", 100, Color(139, 0, 0), 0, true, 5);
 		//---------------------------------------------------------------------
 		Main_texture.loadFromFile("data/images/Intro.png");
 		Intro_texture.loadFromFile("data/images/MainMenu.png");
@@ -279,7 +279,7 @@ int GameStart()
 		Music music;
 		//Я НЕ ОПРЕДЕЛИЛСЯ ЧТО СТАВИТЬ В НАЧАЛО
 		srand(time(nullptr));
-		int introIndex = rand() % 3; // от 0 до 2
+		int introIndex = rand() % 2; // от 0 до 2
 		string filename = "data/music/Intro";
 		if (introIndex != 0)
 			filename += to_string(introIndex);
@@ -291,7 +291,7 @@ int GameStart()
 		//int moving = 1920;
 		//-----------------------------КНОПКИ "PLAY"---------------------------
 		PopUpMenu Play_Menu(1650, 1080);
-		Button ChooseDf(1000, 70, 600, 100, Color(100, 100, 100), font, L"Выберите сложность", 100, Color(180, 0, 0), 0, false, 5);
+		Button ChooseDf(1000, 70, 600, 100, Color(100, 100, 100), font, L"Select Difficulty", 100, Color(180, 0, 0), 0, false, 5);
 		//
 		Texture Df;
 		Sprite DfEasy;
@@ -305,7 +305,7 @@ int GameStart()
 		DfEasyRect.setPosition(700, 395);
 		DfEasyRect.setOutlineThickness(4);
 		DfEasyRect.setOutlineColor(Color(60, 60, 60, 200));
-		PopUpButton DifficultyEasy(210, 100, 675, 650, Color(100, 100, 100), font, L"Изи", 85, Color(200, 0, 0), 0, true, 6);
+		PopUpButton DifficultyEasy(210, 100, 675, 650, Color(100, 100, 100), font, L"Easy", 85, Color(200, 0, 0), 0, true, 6);
 		//
 		Sprite DfNormal;
 		DfNormal.setTexture(Df);
@@ -317,7 +317,7 @@ int GameStart()
 		DfNormalRect.setPosition(997, 395);
 		DfNormalRect.setOutlineThickness(4);
 		DfNormalRect.setOutlineColor(Color(60, 60, 60, 200));
-		PopUpButton DifficultyNormal(210, 100, 975, 650, Color(100, 100, 100), font, L"Нормас", 85, Color(200, 0, 0), 0, true, 6);
+		PopUpButton DifficultyNormal(210, 100, 975, 650, Color(100, 100, 100), font, L"Normal", 85, Color(200, 0, 0), 0, true, 6);
 		//
 		Sprite DfHard;
 		DfHard.setTexture(Df);
@@ -329,14 +329,14 @@ int GameStart()
 		DfHardRect.setPosition(1295, 395);
 		DfHardRect.setOutlineThickness(4);
 		DfHardRect.setOutlineColor(Color(60, 60, 60, 200));
-		PopUpButton DifficultyHard(210, 100, 1275, 650, Color(100, 100, 100), font, L"Кошмар", 85, Color(200, 0, 0), 0, true, 6);
+		PopUpButton DifficultyHard(210, 100, 1275, 650, Color(100, 100, 100), font, L"Hard", 85, Color(200, 0, 0), 0, true, 6);
 		//
-		PopUpButton Start(210, 100, 975, 850, Color(100, 100, 100), font, L"Начать", 130, Color(65, 65, 65), 0, true, 6);
+		PopUpButton Start(210, 100, 975, 850, Color(100, 100, 100), font, L"Start", 130, Color(65, 65, 65), 0, true, 6);
 		//---------------------------------------------------------------------
 		//----------------------------КНОПКИ "SETTINGS"------------------------
 		PopUpMenu Settings_Menu(1650, 1080);
-		PopUpButton MusicButton(210, 100, 600, 350, Color(100, 100, 100), font, L"Музыка", 85, Color(200, 0, 0), 0, false, 6);
-		PopUpButton SoundButton(210, 100, 600, 500, Color(100, 100, 100), font, L"Звук", 85, Color(200, 0, 0), 0, false, 6);
+		PopUpButton MusicButton(210, 100, 600, 350, Color(100, 100, 100), font, L"Music", 85, Color(200, 0, 0), 0, false, 6);
+		PopUpButton SoundButton(210, 100, 600, 500, Color(100, 100, 100), font, L"Sound", 85, Color(200, 0, 0), 0, false, 6);
 		SoundSlider MusicSlide(850, 365, 380, 70, MusicVolume);
 		SoundSlider SoundSlide(850, 515, 380, 70, SoundVolume);
 		PopUpButton MusicPercent(210, 100, 1200, 350, Color(100, 100, 100), font, MusicSlide.getPercent(), 85, Color(200, 0, 0), 0, false, 6);
@@ -355,9 +355,9 @@ int GameStart()
 		ability_3.loadFromFile("data/images/Ability3.png");
 		/*(int Recwidth, int Recheight, int PosX, int PosY, const Color& colorshape,
 			const Font& Font, const String& Legend, int TextSize, const Color& colortext, Image& AbilityImg, bool CanClick = true, int Thickness = 0)*/
-		AbilityButton Ability_1(400, 450, 400, 300, Color(80, 80, 80), font, L"Здоровье", 85, Color(200, 0, 0), ability_1, Frame, true, 6, Upgrade1Level, UpgradeMoneyCount[0]);
-		AbilityButton Ability_2(400, 450, 900, 300, Color(80, 80, 80), font, L"Броня", 85, Color(200, 0, 0), ability_2, Frame, true, 6, Upgrade2Level, UpgradeMoneyCount[1]);
-		AbilityButton Ability_3(400, 450, 1400, 300, Color(80, 80, 80), font, L"Атака", 85, Color(200, 0, 0), ability_3, Frame, true, 6, Upgrade3Level, UpgradeMoneyCount[2]);
+		AbilityButton Ability_1(400, 450, 400, 300, Color(80, 80, 80), font, L"Health", 85, Color(200, 0, 0), ability_1, Frame, true, 6, Upgrade1Level, UpgradeMoneyCount[0]);
+		AbilityButton Ability_2(400, 450, 900, 300, Color(80, 80, 80), font, L"Armor", 85, Color(200, 0, 0), ability_2, Frame, true, 6, Upgrade2Level, UpgradeMoneyCount[1]);
+		AbilityButton Ability_3(400, 450, 1400, 300, Color(80, 80, 80), font, L"Attack", 85, Color(200, 0, 0), ability_3, Frame, true, 6, Upgrade3Level, UpgradeMoneyCount[2]);
 		//---------------------------------------------------------------------
 		//-----------------------------КНОПКИ "INFO"---------------------------
 		PopUpMenu Info_Menu(1650, 1080);
@@ -413,12 +413,12 @@ int GameStart()
 
 
 		/*InfoRect(string& way_path, int PosX, int PosY, String Name, String Description)*/
-		InfoRect Ability1Info("data/images/Weapon1Icon.png", 400,100, L"Теневой клинок", L"прямой удар перед собой наносящий урон и отталкивающий врагов");
-		InfoRect Ability2Info("data/images/Weapon2Icon.psd", 400,250, L"Магическая призма", L"выстрел в случайного врага с его отталкиванием. Недостаточно силён, чтобы пробить его насквозь");
-		InfoRect Ability3Info("data/images/Attack3.png", 400,400, L"Святые кресты", L"Вращающаяся вокруг персонажа атака, отталкивающая и наносящая урон");
-		InfoRect Ability4Info("data/images/Weapon4Icon.psd", 400,550, L"Пентаграмма Крови", L"Пентаграмма, в зоне поражения которой враги замедляются");
-		InfoRect Ability5Info("data/images/Weapon5Icon.png", 400,700, L"Камень Душ", L"после убийства нужного количества врагов исцеляет персонажа");
-		InfoRect Ability6Info("data/images/Weapon6Icon.psd", 400,850, L"Мистические часы", L"странные часы. Что же они делают? Известно одно: урона от них не видать");
+		InfoRect Ability1Info("data/images/Weapon1Icon.png", 400,100, L"Shadow Blade", L"Forward slash that deals damage and knocks back enemies.");
+		InfoRect Ability2Info("data/images/Weapon2Icon.psd", 400,250, L"Magic Prism", L"Fires a projectile at a random enemy with knockback. Cannot pierce targets.");
+		InfoRect Ability3Info("data/images/Attack3.png", 400,400, L"Holy Crosses", L"Projectiles orbit around the player, dealing damage and knocking enemies back.");
+		InfoRect Ability4Info("data/images/Weapon4Icon.psd", 400,550, L"Blood Pentagram", L"Creates an aura that slows down all enemies within its radius.");
+		InfoRect Ability5Info("data/images/Weapon5Icon.png", 400,700, L"Soul Stone", L"Heals the player after defeating a specific number of enemies.");
+		InfoRect Ability6Info("data/images/Weapon6Icon.psd", 400,850, L"Mystic Clock", L"Stops down time after a long cooldown. Deals no damage.");
 		//---------------------------------------------------------------------
 
 		//характеристики врагов, которые будут меняться. Возможно надр будет поменять приросты
@@ -443,7 +443,7 @@ int GameStart()
 			if (isIntro)
 			{
 				// Отображаем сообщение "Нажмите любую кнопку для продолжения"
-				Intro menu(1920, 1080, 0, 0, Color(50, 50, 50), font, L"Нажмите любую кнопку, чтобы продолжить", 60, Color(200, 0, 0), 0, false, 6);
+				Intro menu(1920, 1080, 0, 0, Color(50, 50, 50), font, L"Press any key to continue", 60, Color(200, 0, 0), 0, false, 6);
 				intro.MenuDraw(window);
 				menu.ButtonUpdate(window); // Выводим текстовое сообщение
 				// Обработка событий
@@ -865,26 +865,26 @@ int GameStart()
 		float gameTime = 0.f;          // Прошедшее время
 
 
-		Button Pause(210, 130, (1920 / 2) - 105, 100, Color(100, 100, 100), font, L"Пауза", 150, Color(200, 0, 0), 0, false, 6);
+		Button Pause(210, 130, (1920 / 2) - 105, 100, Color(100, 100, 100), font, L"Pause", 150, Color(200, 0, 0), 0, false, 6);
 		bool QuitWarning = false;
 		RectangleShape PauseRect;
 		PauseRect.setSize(Vector2f(1920, 1080));
 		PauseRect.setPosition(0, 0);
 		PauseRect.setFillColor(Color(100, 100, 100, 150));
-		PopUpButton MusicPauseText(210, 100, 600, 350, Color(100, 100, 100), font, L"Музыка", 85, Color(158, 44, 44), 0, false, 6);
-		PopUpButton SoundPauseText(210, 100, 600, 500, Color(100, 100, 100), font, L"Звук", 85, Color(158, 44, 44), 0, false, 6);
+		PopUpButton MusicPauseText(210, 100, 600, 350, Color(100, 100, 100), font, L"Music", 85, Color(158, 44, 44), 0, false, 6);
+		PopUpButton SoundPauseText(210, 100, 600, 500, Color(100, 100, 100), font, L"Sound", 85, Color(158, 44, 44), 0, false, 6);
 		SoundSlider MusicPauseSlide(850, 365, 380, 70, MusicVolume);
 		SoundSlider SoundPauseSlide(850, 515, 380, 70, SoundVolume);
 		PopUpButton MusicPausePercent(210, 100, 1200, 350, Color(100, 100, 100), font, MusicPauseSlide.getPercent(), 85, Color(158, 44, 44), 0, false, 6);
 		PopUpButton SoundPausePercent(210, 100, 1200, 500, Color(100, 100, 100), font, SoundPauseSlide.getPercent(), 85, Color(158, 44, 44), 0, false, 6);
 
-		PopUpButton QuitToMenu(210, 100, (1920 / 2) - 105, 900, Color(100, 100, 100), font, L"Выйти в меню", 85, Color(115, 112, 112), 0, true, 6);
+		PopUpButton QuitToMenu(210, 100, (1920 / 2) - 105, 900, Color(100, 100, 100), font, L"Main Menu", 85, Color(115, 112, 112), 0, true, 6);
 
-		PopUpButton WarningText(500, 100, (1920 / 2) - 250, 300, Color(100, 100, 100), font, L"Уверены что хотите выйти?", 80, Color(200, 0, 0), 0, false, 6);
-		PopUpButton WarningText1(500, 100, (1920 / 2) - 250, 400, Color(100, 100, 100), font, L"Весь прогресс этого сеанса будет утерян", 50, Color(150, 0, 0), 0, false, 6);
+		PopUpButton WarningText(500, 100, (1920 / 2) - 250, 300, Color(100, 100, 100), font, L"Are you sure you want to quit?", 80, Color(200, 0, 0), 0, false, 6);
+		PopUpButton WarningText1(500, 100, (1920 / 2) - 250, 400, Color(100, 100, 100), font, L"All progress from this run will be lost", 50, Color(150, 0, 0), 0, false, 6);
 
-		PopUpButton QuitYes(350, 100, (1920 / 2) - 350, 575, Color(100, 100, 100), font, L"ДА!", 90, Color(180, 0, 0), 0, true, 6);
-		PopUpButton QuitNo(350, 100, (1920 / 2), 575, Color(100, 100, 100), font, L"НЕ", 90, Color(180, 0, 0), 0, true, 6);
+		PopUpButton QuitYes(350, 100, (1920 / 2) - 350, 575, Color(100, 100, 100), font, L"YES!", 90, Color(180, 0, 0), 0, true, 6);
+		PopUpButton QuitNo(350, 100, (1920 / 2), 575, Color(100, 100, 100), font, L"NO", 90, Color(180, 0, 0), 0, true, 6);
 
 		RectangleShape QuitRect;
 		QuitRect.setSize(Vector2f(750, 500));
@@ -898,13 +898,13 @@ int GameStart()
 		int CurrentScore = 0;
 		int CurrentMoney = 0;
 
-		Button Loose(210, 130, (1920 / 2) - 105, 100, Color(100, 100, 100), font, L"Поражение", 150, Color(200, 0, 0), 0, false, 6);
-		Button LooseText(210, 130, (1920 / 2) - 105, 300, Color(100, 100, 100), font, L"В следующий раз повезёт!", 80, Color(150, 0, 0), 0, false, 6);
+		Button Loose(210, 130, (1920 / 2) - 105, 100, Color(100, 100, 100), font, L"Defeat", 150, Color(200, 0, 0), 0, false, 6);
+		Button LooseText(210, 130, (1920 / 2) - 105, 300, Color(100, 100, 100), font, L"Better luck next time!", 80, Color(150, 0, 0), 0, false, 6);
 
-		Button Win(210, 130, (1920 / 2) - 105, 100, Color(100, 100, 100), font, L"Победа", 150, Color(200, 0, 0), 0, false, 6);
-		Button WinText(210, 130, (1920 / 2) - 105, 300, Color(100, 100, 100), font, L"Ты выжил! Пока...", 80, Color(150, 0, 0), 0, false, 6);
+		Button Win(210, 130, (1920 / 2) - 105, 100, Color(100, 100, 100), font, L"Victory", 150, Color(200, 0, 0), 0, false, 6);
+		Button WinText(210, 130, (1920 / 2) - 105, 300, Color(100, 100, 100), font, L"You survived! For now...", 80, Color(150, 0, 0), 0, false, 6);
 
-		Button Score1(210, 130, 500 , 480, Color(100, 100, 100), font, L"Счёт: ", 80, Color(150, 150, 150), 0, false, 6);
+		Button Score1(210, 130, 500 , 480, Color(100, 100, 100), font, L"Score: ", 80, Color(150, 150, 150), 0, false, 6);
 		Text Score2;
 		Score2.setFont(font);
 		Score2.setString("1");
@@ -915,7 +915,7 @@ int GameStart()
 		Score2.setOutlineColor(Color(50, 50, 50));
 		Text Score3;
 		Score3.setFont(font);
-		Score3.setString(L"рекорд побит!");
+		Score3.setString(L"New High Score!");
 		Score3.setPosition(1300, 500);
 		Score3.setCharacterSize(80);
 		Score3.setFillColor(Color(150, 150, 150));
@@ -923,7 +923,7 @@ int GameStart()
 		Score3.setOutlineColor(Color(50, 50, 50));
 
 
-		Button MoneyTaken(210, 130, 500, 630, Color(100, 100, 100), font, L"Золота: ", 80, Color(150, 150, 150), 0, false, 6);
+		Button MoneyTaken(210, 130, 500, 630, Color(100, 100, 100), font, L"Gold: ", 80, Color(150, 150, 150), 0, false, 6);
 		Text MoneyTaken2;
 		MoneyTaken2.setFont(font);
 		MoneyTaken2.setString("11111");
@@ -934,7 +934,7 @@ int GameStart()
 		MoneyTaken2.setOutlineColor(Color(50,50,50));
 
 
-		PopUpButton QuitToMenuGameOver(210, 100, (1920 / 2) - 105, 900, Color(100, 100, 100), font, L"Выйти в меню", 85, Color(115, 112, 112), 0, true, 6);
+		PopUpButton QuitToMenuGameOver(210, 100, (1920 / 2) - 105, 900, Color(100, 100, 100), font, L"Main Menu", 85, Color(115, 112, 112), 0, true, 6);
 		//-------------------
 
 
